@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureAttend</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+
+<body class="bg-slate-900 text-white">
+
+<!-- Navbar -->
+<nav id="navbar"
+class="bg-slate-900 px-10 py-4 flex justify-between items-center 
+shadow-lg sticky top-0 z-50 transition-all duration-300">
+
+  <h2 class="text-2xl font-bold text-blue-400">SecureAttend</h2>
+
+  <div class="space-x-8 hidden md:block font-medium">
+    <a href="#" class="text-blue-400 font-semibold border-b-2 border-blue-400 pb-1">Home</a>
+    <a href="#features" class="hover:text-blue-400">Features</a>
+    <a href="#about" class="hover:text-blue-400">About</a>
+    <a href="#contact" class="hover:text-blue-400">Contact</a>
+    <a href="login.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Login</a>
+    <a href="register.html" class="border border-blue-400 text-blue-400 px-4 py-2 rounded-lg">Register</a>
+  </div>
+</nav>
+
+<!-- Hero Section (UNCHANGED) -->
+<section class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-10 py-24 overflow-hidden">
+
+  <div class="absolute top-0 left-0 w-96 h-96 bg-blue-600 opacity-20 blur-3xl rounded-full"></div>
+  <div class="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600 opacity-20 blur-3xl rounded-full"></div>
+
+  <div class="relative grid md:grid-cols-2 items-center gap-16 max-w-7xl mx-auto">
+
+    <div data-aos="fade-right">
+      <p class="text-blue-400 font-semibold mb-3 uppercase tracking-wide">
+        Next Gen Attendance System
+      </p>
+
+      <h1 class="text-5xl md:text-6xl font-bold leading-tight mb-6">
+        Smart Attendance <br>
+        <span class="text-blue-500">Powered by Blockchain</span>
+      </h1>
+
+      <p class="text-lg text-gray-300 mb-8 max-w-lg">
+        Eliminate proxy attendance and manual errors. SecureAttend uses blockchain
+        technology to deliver transparent, tamper-proof and automated attendance tracking.
+      </p>
+
+      <div class="flex flex-wrap gap-4">
+        <a href="login.html" class="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg shadow-lg transition transform hover:scale-105">
+          Get Started
+        </a>
+
+        <a href="#features" class="border border-gray-400 px-8 py-3 rounded-lg hover:bg-white hover:text-black transition">
+          Explore Features
+        </a>
+      </div>
+
+      <div class="flex gap-10 mt-10 text-sm text-gray-400">
+        <div>
+          <h3 class="text-2xl font-bold text-white">100%</h3>
+          Secure Data
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-white">0%</h3>
+          Proxy Attendance
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-white">24/7</h3>
+          Access
+        </div>
+      </div>
+    </div>
+
+    <div data-aos="fade-left">
+      <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 shadow-2xl">
+
+        <h3 class="text-xl font-semibold mb-6">Live System Preview</h3>
+
+        <div class="space-y-4 text-sm">
+          <div class="flex justify-between bg-white/10 p-3 rounded-lg">
+            <span>Student Attendance</span>
+            <span class="text-green-400">✔ Marked</span>
+          </div>
+
+          <div class="flex justify-between bg-white/10 p-3 rounded-lg">
+            <span>Blockchain Sync</span>
+            <span class="text-blue-400">⛓ Verified</span>
+          </div>
+
+          <div class="flex justify-between bg-white/10 p-3 rounded-lg">
+            <span>Faculty Approval</span>
+            <span class="text-yellow-400">⏳ Pending</span>
+          </div>
+        </div>
+
+        <button class="mt-6 w-full bg-blue-600 py-2 rounded-lg hover:bg-blue-700 transition">
+          View Dashboard
+        </button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="py-20 px-10 bg-slate-900">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-4xl font-bold text-center mb-4">Powerful Features</h2>
+    <p class="text-center text-gray-400 mb-12">Everything you need to manage attendance securely and efficiently</p>
+
+    <div class="grid md:grid-cols-3 gap-10">
+
+      <div class="p-8 rounded-2xl bg-white/10 backdrop-blur border border-white/10 hover:shadow-xl transition">
+        <h3 class="text-xl font-semibold mb-3 text-blue-400">🔐 Blockchain Security</h3>
+        <p class="text-gray-300">All attendance data is stored on blockchain ensuring it is tamper-proof, permanent, and highly secure.</p>
+      </div>
+
+      <div class="p-8 rounded-2xl bg-white/10 backdrop-blur border border-white/10 hover:shadow-xl transition">
+        <h3 class="text-xl font-semibold mb-3 text-blue-400">⚙️ Smart Automation</h3>
+        <p class="text-gray-300">Smart contracts automate attendance marking, validation, and storage without manual intervention.</p>
+      </div>
+
+      <div class="p-8 rounded-2xl bg-white/10 backdrop-blur border border-white/10 hover:shadow-xl transition">
+        <h3 class="text-xl font-semibold mb-3 text-blue-400">👥 Role-Based Access</h3>
+        <p class="text-gray-300">Separate dashboards for Admin, Faculty, and Students with controlled access and functionality.</p>
+      </div>
+
+      <div class="p-8 rounded-2xl bg-white/10 backdrop-blur border border-white/10 hover:shadow-xl transition">
+        <h3 class="text-xl font-semibold mb-3 text-blue-400">📊 Real-Time Insights</h3>
+        <p class="text-gray-300">Track attendance live with accurate reports and analytics for better decision-making.</p>
+      </div>
+
+      <div class="p-8 rounded-2xl bg-white/10 backdrop-blur border border-white/10 hover:shadow-xl transition">
+        <h3 class="text-xl font-semibold mb-3 text-blue-400">🔎 Transparency</h3>
+        <p class="text-gray-300">Students and admins can verify attendance anytime, ensuring trust and accountability.</p>
+      </div>
+
+      <div class="p-8 rounded-2xl bg-white/10 backdrop-blur border border-white/10 hover:shadow-xl transition">
+        <h3 class="text-xl font-semibold mb-3 text-blue-400">⚡ Easy Management</h3>
+        <p class="text-gray-300">Quickly add students, assign subjects, and manage faculty through an intuitive interface.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="py-20 px-10 bg-gradient-to-r from-slate-900 to-slate-800">
+  <div class="max-w-5xl mx-auto text-center">
+    <h2 class="text-4xl font-bold mb-6">About SecureAttend</h2>
+    <p class="text-lg text-gray-300 leading-relaxed">SecureAttend is a next-generation attendance management system built using blockchain technology.</p>
+    <p class="text-lg text-gray-300 mt-4 leading-relaxed">By integrating smart contracts, SecureAttend ensures that every attendance record is automatically verified.</p>
+    <p class="text-lg text-gray-300 mt-4 leading-relaxed">Designed for modern colleges and universities, it simplifies administration while improving accuracy and reliability.</p>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="py-20 px-10 bg-slate-900">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-4xl font-bold text-center mb-10">Get in Touch</h2>
+
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+
+      <div>
+        <h3 class="text-2xl font-semibold mb-4">Let’s build something secure together</h3>
+        <p class="text-gray-400 mb-6">Have questions about SecureAttend or want to collaborate?</p>
+        <p>📧 support@secureattend.com</p>
+        <p class="mt-2">📞 +91 9876543210</p>
+      </div>
+
+      <form class="bg-white/10 backdrop-blur p-6 rounded-xl border border-white/10">
+        <input type="text" placeholder="Your Name" class="w-full mb-4 p-3 bg-transparent border border-white/20 rounded-lg">
+        <input type="email" placeholder="Your Email" class="w-full mb-4 p-3 bg-transparent border border-white/20 rounded-lg">
+        <textarea placeholder="Your Message" class="w-full mb-4 p-3 bg-transparent border border-white/20 rounded-lg"></textarea>
+        <button class="w-full bg-blue-600 py-3 rounded-lg hover:bg-blue-700">Send Message</button>
+      </form>
+
+    </div>
+  </div>
+</section>
+
+<footer class="bg-slate-900 border-t border-white/10 text-center py-6 text-gray-400">
+  © 2026 SecureAttend
+</footer>
+
+<script>
+AOS.init();
+</script>
+
+</body>
+</html>

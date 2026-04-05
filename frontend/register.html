@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureAttend Register</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  .error-slide { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; opacity: 0; }
+  .error-slide.show { max-height: 50px; opacity: 1; }
+  #successPopup { position: absolute; top: 70px; right: 40px; transform: translateY(-20px); transition: transform 0.5s ease, opacity 0.5s ease; opacity: 0; z-index: 50; }
+  #successPopup.show { transform: translateY(0); opacity: 1; }
+  .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .card-hover:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(255,255,255,0.1); }
+  .eye-btn { position: absolute; right: 0.75rem; top: 0.625rem; width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; color: #9ca3af; cursor: pointer; }
+  .eye-btn:hover { color: #ffffff; }
+  @keyframes gradient-shimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  .animate-gradient-shimmer { background-size: 200% 200%; animation: gradient-shimmer 3s ease infinite; }
+</style>
+</head>
+<body class="bg-gradient-to-br from-[#0f172a] via-[#020617] to-black min-h-screen text-white relative">
+
+<!-- Navbar -->
+<nav class="flex justify-between items-center px-10 py-4 border-b border-white/10 relative z-10">
+  <h1 class="text-2xl font-bold tracking-wider text-blue-500 cursor-pointer" onclick="location.href='index.html'">SecureAttend</h1>
+  <div class="space-x-6 text-sm">
+    <a href="index.html" class="hover:text-blue-400 transition duration-300">Home</a>
+    <a href="login.html" class="hover:text-blue-400 transition duration-300">Login</a>
+  </div>
+</nav>
+
+<!-- Success Popup -->
+<div id="successPopup" class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+  Registration Successful!
+</div>
+
+<!-- Title -->
+<div class="text-center mt-10">
+  <h1 class="text-4xl font-bold tracking-wide">CREATE <span class="text-blue-500">ACCOUNT</span></h1>
+</div>
+
+<!-- Form Card -->
+<div class="flex justify-center mt-10">
+  <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 w-[420px] shadow-2xl card-hover">
+    <form id="registerForm" novalidate>
+      <!-- Name Row -->
+      <div class="flex gap-4 mb-2">
+        <div class="w-1/2">
+          <input type="text" id="firstName" placeholder="First Name" class="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <p id="firstNameError" class="text-red-500 text-sm mt-1 error-slide">Invalid first name (min 3 chars).</p>
+        </div>
+        <div class="w-1/2">
+          <input type="text" id="lastName" placeholder="Last Name" class="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <p id="lastNameError" class="text-red-500 text-sm mt-1 error-slide">Invalid last name (min 3 chars).</p>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-2">
+        <input type="email" id="email" placeholder="Email (@gmail.com)" class="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p id="emailError" class="text-red-500 text-sm mt-1 error-slide">Email must end with @gmail.com</p>
+      </div>
+
+      <!-- Password -->
+      <div class="relative mb-2">
+        <input type="password" id="password" placeholder="Password" class="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <i class="far fa-eye eye-btn" id="togglePassword"></i>
+        <p id="passwordError" class="text-red-500 text-sm mt-1 error-slide">Password must have 8+ chars with uppercase, lowercase, number & symbol.</p>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="relative mb-4">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" class="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <i class="far fa-eye eye-btn" id="toggleConfirmPassword"></i>
+        <p id="confirmPasswordError" class="text-red-500 text-sm mt-1 error-slide">Passwords do not match!</p>
+      </div>
+
+      <!-- Role -->
+      <select id="role" class="w-full px-4 py-2 mb-4 rounded-lg bg-white/10 border border-white/20 text-white">
+        <option value="" disabled selected>Select Role</option>
+        <option value="admin" class="text-black">👑 Admin</option>
+        <option value="faculty" class="text-black">🎓 Faculty</option>
+        <option value="student" class="text-black">📘 Student</option>
+      </select>
+
+      <!-- Register Button -->
+      <button type="submit" class="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white font-semibold bg-[length:200%_200%] animate-gradient-shimmer shadow-lg shadow-blue-500/30 btn-glow">
+        REGISTER ACCOUNT
+      </button>
+
+      <!-- Login Link -->
+      <p class="text-center text-sm mt-4 text-gray-400">
+        Already have an account? <span class="text-blue-400 cursor-pointer hover:underline" onclick="location.href='login.html'">Login</span>
+      </p>
+    </form>
+  </div>
+</div>
+
+<script>
+// Form elements
+const firstName = document.getElementById('firstName');
+const lastName = document.getElementById('lastName');
+const email = document.getElementById('email');
+const password = document.getElementById('password');
+const confirmPassword = document.getElementById('confirmPassword');
+const role = document.getElementById('role');
+
+// Error elements
+const firstNameError = document.getElementById('firstNameError');
+const lastNameError = document.getElementById('lastNameError');
+const emailError = document.getElementById('emailError');
+const passwordError = document.getElementById('passwordError');
+const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+// Success popup
+const successPopup = document.getElementById('successPopup');
+
+// Eye toggles
+const togglePassword = document.getElementById('togglePassword');
+const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+
+function toggleEye(input, icon){
+  if(input.type==='password'){ input.type='text'; icon.classList.replace('fa-eye-slash','fa-eye'); }
+  else{ input.type='password'; icon.classList.replace('fa-eye','fa-eye-slash'); }
+}
+togglePassword.addEventListener('click',()=>toggleEye(password,togglePassword));
+toggleConfirmPassword.addEventListener('click',()=>toggleEye(confirmPassword,toggleConfirmPassword));
+
+// Validation
+function validateFirstName(){ firstNameError.classList.toggle('show', firstName.value.trim().length < 3); }
+function validateLastName(){ lastNameError.classList.toggle('show', lastName.value.trim().length < 3); }
+function validateEmail(){ 
+  const val = email.value.trim(); 
+  const regex = /^[a-z][a-z0-9._%+-]*@gmail\.com$/; 
+  emailError.classList.toggle('show', val.length<3 || !regex.test(val)); 
+}
+function validatePassword(){ 
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/; 
+  passwordError.classList.toggle('show', !regex.test(password.value)); 
+  validateConfirmPassword();
+}
+function validateConfirmPassword(){ confirmPasswordError.classList.toggle('show', password.value!==confirmPassword.value); }
+
+// Live validation
+firstName.addEventListener('input', validateFirstName);
+lastName.addEventListener('input', validateLastName);
+email.addEventListener('input', validateEmail);
+password.addEventListener('input', validatePassword);
+confirmPassword.addEventListener('input', validateConfirmPassword);
+
+// Success popup & redirect
+function showSuccess(){ 
+  successPopup.classList.add('show'); 
+  setTimeout(()=>{ successPopup.classList.remove('show'); window.location.href='login.html'; },2500);
+}
+
+// Submit
+document.getElementById('registerForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  validateFirstName(); validateLastName(); validateEmail(); validatePassword(); validateConfirmPassword();
+  if([firstNameError,lastNameError,emailError,passwordError,confirmPasswordError].every(el=>!el.classList.contains('show')) && role.value){
+    const data = { firstName:firstName.value, lastName:lastName.value, email:email.value, password:password.value, role:role.value };
+    try {
+      const res = await fetch('/register',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const result = await res.json();
+      if(result.success){ showSuccess(); } else { alert(result.message); }
+    } catch(err){ console.error(err); alert('Registration failed!'); }
+  } else if(!role.value){ alert("Please select a role!"); }
+});
+</script>
+</body>
+</html>

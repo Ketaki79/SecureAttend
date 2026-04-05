@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+</head>
+
+<body class="bg-gradient-to-br from-[#0f172a] via-[#020617] to-black text-white min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-64 bg-slate-900 p-6 flex flex-col h-screen fixed left-0 top-0 overflow-hidden">
+
+  <!-- Top Content -->
+  <div>
+    <h2 class="text-2xl font-bold text-blue-400 mb-10">SecureAttend</h2>
+
+    <nav class="flex flex-col gap-5 text-lg">
+      <button onclick="showSection('dashboard')" class="flex items-center gap-3 text-blue-400">
+        <i class="fas fa-home"></i> Dashboard
+      </button>
+
+      <button onclick="showSection('students')" class="flex items-center gap-3 hover:text-blue-400">
+        <i class="fas fa-user-graduate"></i> Students
+      </button>
+
+      <button onclick="showSection('faculty')" class="flex items-center gap-3 hover:text-blue-400">
+        <i class="fas fa-chalkboard-teacher"></i> Faculty
+      </button>
+
+      <button onclick="showSection('subjects')" class="flex items-center gap-3 hover:text-blue-400">
+        <i class="fas fa-book"></i> Subjects
+      </button>
+    </nav>
+  </div>
+
+  <!-- Logout at Bottom -->
+  <a href="index.html" class="flex items-center gap-3 text-red-400 mt-auto hover:text-red-500">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
+
+</aside>
+
+<!-- Main -->
+<main class="flex-1 p-8 ml-64 space-y-8">
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboard">
+
+  <!-- Top Bar -->
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+
+    <div class="flex items-center gap-4">
+
+      <div class="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center font-bold">
+        A
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid md:grid-cols-3 gap-6 mt-6">
+    <div class="bg-white/10 p-6 rounded-xl text-center">
+      <h3>Total Students</h3>
+      <p class="text-3xl text-blue-400" id="studentCount">0</p>
+    </div>
+
+    <div class="bg-white/10 p-6 rounded-xl text-center">
+      <h3>Total Faculty</h3>
+      <p class="text-3xl text-green-400" id="facultyCount">0</p>
+    </div>
+
+    <div class="bg-white/10 p-6 rounded-xl text-center">
+      <h3>Total Subjects</h3>
+      <p class="text-3xl text-yellow-400" id="subjectCount">0</p>
+    </div>
+  </div>
+
+  <!-- Forms -->
+  <div class="grid md:grid-cols-2 gap-6 mt-6">
+
+    <!-- Add Student -->
+    <div class="bg-white/10 p-6 rounded-xl">
+      <h3 class="text-xl mb-4 text-blue-400">Add Student</h3>
+
+      <input id="sName" placeholder="Full Name" class="input">
+      <input id="sEmail" placeholder="Email" class="input">
+      <input id="sBranch" placeholder="Branch" class="input">
+      <input id="sSem" placeholder="Semester" class="input">
+
+      <button onclick="addStudent()" class="btn-blue">Add Student</button>
+    </div>
+
+    <!-- Add Faculty -->
+    <div class="bg-white/10 p-6 rounded-xl">
+      <h3 class="text-xl mb-4 text-green-400">Add Faculty</h3>
+
+      <input id="fName" placeholder="Full Name" class="input">
+      <input id="fEmail" placeholder="Email" class="input">
+      <input id="fBranch" placeholder="Branch" class="input">
+      <input id="fSubject" placeholder="Subject" class="input">
+
+      <button onclick="addFaculty()" class="btn-green">Add Faculty</button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= STUDENTS ================= -->
+<div id="students" class="hidden">
+  <h2 class="text-2xl mb-4">Students</h2>
+
+  <table class="w-full bg-white/10 rounded-xl">
+    <thead>
+      <tr>
+        <th>Name</th><th>Email</th><th>Branch</th><th>Sem</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="studentTable"></tbody>
+  </table>
+</div>
+
+<!-- ================= FACULTY ================= -->
+<div id="faculty" class="hidden">
+  <h2 class="text-2xl mb-4">Faculty</h2>
+
+  <table class="w-full bg-white/10 rounded-xl">
+    <thead>
+      <tr>
+        <th>Name</th><th>Email</th><th>Branch</th><th>Subject</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="facultyTable"></tbody>
+  </table>
+</div>
+
+<!-- ================= SUBJECTS ================= -->
+<div id="subjects" class="hidden">
+  <h2 class="text-2xl mb-4">Subjects</h2>
+
+  <table class="w-full bg-white/10 rounded-xl">
+    <thead>
+      <tr><th>Semester</th><th>Subject</th></tr>
+    </thead>
+    <tbody id="subjectTable"></tbody>
+  </table>
+</div>
+
+</main>
+
+<style>
+.input {
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:6px;
+}
+.btn-blue {background:#2563eb; padding:10px; width:100%; border-radius:8px;}
+.btn-green {background:#16a34a; padding:10px; width:100%; border-radius:8px;}
+</style>
+
+<script>
+
+let students = [];
+let faculty = [];
+
+let subjects = [];
+
+// NAVIGATION
+function showSection(sec){
+  document.querySelectorAll("main > div").forEach(d => d.classList.add("hidden"));
+  document.getElementById(sec).classList.remove("hidden");
+
+  if(sec==="students") renderStudents();
+  if(sec==="faculty") renderFaculty();
+  if(sec==="subjects") renderSubjects();
+}
+
+// ADD
+function addStudent(){
+  students.push({
+    name: sName.value,
+    email: sEmail.value,
+    branch: sBranch.value,
+    sem: sSem.value
+  });
+
+  //  CLEAR INPUTS
+  sName.value = "";
+  sEmail.value = "";
+  sBranch.value = "";
+  sSem.value = "";
+
+  updateCounts();
+  alert("Student Added");
+}
+
+function addFaculty(){
+  faculty.push({
+    name: fName.value,
+    email: fEmail.value,
+    branch: fBranch.value,
+    subject: fSubject.value
+  });
+
+  //  CLEAR INPUTS
+  fName.value = "";
+  fEmail.value = "";
+  fBranch.value = "";
+  fSubject.value = "";
+
+  updateCounts();
+  alert("Faculty Added");
+}
+
+// RENDER
+function renderStudents(){
+  studentTable.innerHTML="";
+  students.forEach((s,i)=>{
+    studentTable.innerHTML+=`
+    <tr>
+      <td>${s.name}</td>
+      <td>${s.email}</td>
+      <td>${s.branch}</td>
+      <td>${s.sem}</td>
+      <td><button onclick="deleteStudent(${i})" class="text-red-400">Delete</button></td>
+    </tr>`;
+  });
+}
+
+function renderFaculty(){
+  facultyTable.innerHTML="";
+  faculty.forEach((f,i)=>{
+    facultyTable.innerHTML+=`
+    <tr>
+      <td>${f.name}</td>
+      <td>${f.email}</td>
+      <td>${f.branch}</td>
+      <td>${f.subject}</td>
+      <td><button onclick="deleteFaculty(${i})" class="text-red-400">Delete</button></td>
+    </tr>`;
+  });
+}
+
+// Render Subjects
+function renderSubjects() {
+  let table = document.getElementById("subjectTable");
+  table.innerHTML = "";
+
+  subjects.forEach(s => {
+    table.innerHTML += `
+      <tr class="border-b border-white/10">
+        <td class="p-2">${s.sem}</td>
+        <td>${s.subject}</td>
+      </tr>
+    `;
+  });
+}
+
+// DELETE
+function deleteStudent(i){ students.splice(i,1); renderStudents(); updateCounts();}
+function deleteFaculty(i){ faculty.splice(i,1); renderFaculty(); updateCounts();}
+
+// COUNT UPDATE
+function updateCounts(){
+  studentCount.innerText = students.length;
+  facultyCount.innerText = faculty.length;
+}
+
+</script>
+
+</body>
+</html>

@@ -16,7 +16,7 @@
 
   <!-- Top Content -->
   <div>
-    <h2 class="text-2xl font-bold text-blue-400 mb-10">SecureAttend</h2>
+    <h2 class="text-2xl font-bold text-blue-400 mb-10 cursor-pointer">SecureAttend</h2>
 
     <nav class="flex flex-col gap-5 text-lg">
       <button onclick="showSection('dashboard')" class="flex items-center gap-3 text-blue-400">
@@ -166,115 +166,7 @@
 .btn-green {background:#16a34a; padding:10px; width:100%; border-radius:8px;}
 </style>
 
-<script>
-
-let students = [];
-let faculty = [];
-
-let subjects = [];
-
-// NAVIGATION
-function showSection(sec){
-  document.querySelectorAll("main > div").forEach(d => d.classList.add("hidden"));
-  document.getElementById(sec).classList.remove("hidden");
-
-  if(sec==="students") renderStudents();
-  if(sec==="faculty") renderFaculty();
-  if(sec==="subjects") renderSubjects();
-}
-
-// ADD
-function addStudent(){
-  students.push({
-    name: sName.value,
-    email: sEmail.value,
-    branch: sBranch.value,
-    sem: sSem.value
-  });
-
-  //  CLEAR INPUTS
-  sName.value = "";
-  sEmail.value = "";
-  sBranch.value = "";
-  sSem.value = "";
-
-  updateCounts();
-  alert("Student Added");
-}
-
-function addFaculty(){
-  faculty.push({
-    name: fName.value,
-    email: fEmail.value,
-    branch: fBranch.value,
-    subject: fSubject.value
-  });
-
-  //  CLEAR INPUTS
-  fName.value = "";
-  fEmail.value = "";
-  fBranch.value = "";
-  fSubject.value = "";
-
-  updateCounts();
-  alert("Faculty Added");
-}
-
-// RENDER
-function renderStudents(){
-  studentTable.innerHTML="";
-  students.forEach((s,i)=>{
-    studentTable.innerHTML+=`
-    <tr>
-      <td>${s.name}</td>
-      <td>${s.email}</td>
-      <td>${s.branch}</td>
-      <td>${s.sem}</td>
-      <td><button onclick="deleteStudent(${i})" class="text-red-400">Delete</button></td>
-    </tr>`;
-  });
-}
-
-function renderFaculty(){
-  facultyTable.innerHTML="";
-  faculty.forEach((f,i)=>{
-    facultyTable.innerHTML+=`
-    <tr>
-      <td>${f.name}</td>
-      <td>${f.email}</td>
-      <td>${f.branch}</td>
-      <td>${f.subject}</td>
-      <td><button onclick="deleteFaculty(${i})" class="text-red-400">Delete</button></td>
-    </tr>`;
-  });
-}
-
-// Render Subjects
-function renderSubjects() {
-  let table = document.getElementById("subjectTable");
-  table.innerHTML = "";
-
-  subjects.forEach(s => {
-    table.innerHTML += `
-      <tr class="border-b border-white/10">
-        <td class="p-2">${s.sem}</td>
-        <td>${s.subject}</td>
-      </tr>
-    `;
-  });
-}
-
-// DELETE
-function deleteStudent(i){ students.splice(i,1); renderStudents(); updateCounts();}
-function deleteFaculty(i){ faculty.splice(i,1); renderFaculty(); updateCounts();}
-
-// COUNT UPDATE
-function updateCounts(){
-  studentCount.innerText = students.length;
-  facultyCount.innerText = faculty.length;
-}
-
-</script>
+<script src="js/admin.js"></script>
 
 </body>
 </html>

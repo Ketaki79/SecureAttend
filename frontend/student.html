@@ -137,30 +137,7 @@
 </main>
 
 <!-- ================= SCRIPT ================= -->
-<script>
-
-// NAVIGATION
-function showSection(id, el) {
-  document.querySelectorAll(".section").forEach(sec => sec.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-
-  document.querySelectorAll(".menu").forEach(btn => btn.classList.remove("text-blue-400"));
-  el.classList.add("text-blue-400");
-}
-
-// PIE CHART
-new Chart(document.getElementById('pieChart'), {
-  type: 'pie',
-  data: {
-    labels: ['Present', 'Absent'],
-    datasets: [{
-      data: [30, 8],
-      backgroundColor: ['#22c55e', '#ef4444']
-    }]
-  }
-});
-
-</script>
+<script src="js/student.js"></script>
 
 </body>
 </html>

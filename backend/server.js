@@ -21,7 +21,7 @@ const db = mysql.createConnection({
 
 db.connect(err => {
     if (err) throw err;
-    console.log("✅ Connected to MySQL database");
+    console.log("Connected to MySQL database");
 });
 
 // ------------------
@@ -117,5 +117,5 @@ app.get("/report/:student_id", (req, res) => {
 // ------------------
 const PORT = 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

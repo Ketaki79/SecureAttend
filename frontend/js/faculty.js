@@ -3,52 +3,54 @@ import { connectWallet, contract, account } from "./blockchain.js";
 
 let students = [];
 let attendanceData = {};   // { subject: { student: "present"/"absent" } }
+let subjects = [];         // Dynamically from blockchain or admin
 
 // ------------------- INITIALIZE -------------------
 window.addEventListener("load", async () => {
   const connected = await connectWallet();
-  if (connected) await loadStudents();
+  if (connected) await loadSubjectsAndStudents();
 });
 
-// ------------------- LOAD STUDENTS & ATTENDANCE -------------------
-async function loadStudents() {
+// ------------------- LOAD SUBJECTS & STUDENTS -------------------
+async function loadSubjectsAndStudents() {
   students = [];
   attendanceData = {};
-  const uniqueSubjects = new Set();
+  subjects = [];
 
   try {
     const records = await contract.methods.getRecords().call();
+    const subjectSet = new Set();
 
     records.forEach(r => {
       // Add unique students
       if (!students.find(s => s.name === r.student)) students.push({ name: r.student });
 
-      // Add unique subjects
-      uniqueSubjects.add(r.subject);
+      // Track unique subjects
+      subjectSet.add(r.subject);
 
       // Attendance data
       if (!attendanceData[r.subject]) attendanceData[r.subject] = {};
       attendanceData[r.subject][r.student] = r.present ? "present" : "absent";
     });
 
-    // Populate dropdowns dynamically
-    populateSubjectDropdown([...uniqueSubjects]);
-    populateReportDropdown([...uniqueSubjects]);
+    subjects = [...subjectSet];
+    populateSubjectDropdown(subjects);
+    populateReportDropdown(subjects);
 
   } catch (err) {
     console.error("Blockchain load error:", err);
-    alert("Failed to load attendance from blockchain");
+    alert("Failed to load students/subjects from blockchain");
   }
 
   loadTable();
 }
 
 // ------------------- POPULATE DROPDOWNS -------------------
-function populateSubjectDropdown(subjectsList) {
+function populateSubjectDropdown(subjectList) {
   const select = document.getElementById("subject");
   select.innerHTML = '<option value="" disabled selected>Select Subject</option>';
 
-  subjectsList.forEach(sub => {
+  subjectList.forEach(sub => {
     const option = document.createElement("option");
     option.value = sub;
     option.textContent = sub;
@@ -56,20 +58,22 @@ function populateSubjectDropdown(subjectsList) {
     select.appendChild(option);
   });
 
-  if (subjectsList.length > 0) select.value = subjectsList[0];
+  if (subjectList.length > 0) select.value = subjectList[0];
 }
 
-function populateReportDropdown(subjectsList) {
+function populateReportDropdown(subjectList) {
   const select = document.getElementById("reportSubject");
   select.innerHTML = "";
 
-  subjectsList.forEach(sub => {
+  subjectList.forEach(sub => {
     const option = document.createElement("option");
     option.value = sub;
     option.textContent = sub;
     option.classList.add("text-black");
     select.appendChild(option);
   });
+
+  if (subjectList.length > 0) select.value = subjectList[0];
 }
 
 // ------------------- LOAD ATTENDANCE TABLE -------------------
@@ -77,6 +81,8 @@ function loadTable() {
   const subject = document.getElementById("subject").value;
   const table = document.getElementById("table");
   table.innerHTML = "";
+
+  if (!subject) return;
 
   students.forEach(s => {
     const status = attendanceData[subject]?.[s.name] || "";
@@ -101,6 +107,7 @@ function loadTable() {
 // ------------------- MARK ATTENDANCE -------------------
 window.mark = async function(studentName, status) {
   const subject = document.getElementById("subject").value;
+  if (!subject) return;
 
   if (!attendanceData[subject]) attendanceData[subject] = {};
   attendanceData[subject][studentName] = status;
@@ -121,6 +128,8 @@ window.mark = async function(studentName, status) {
 // ------------------- REPORTS -------------------
 window.loadReport = function() {
   const subject = document.getElementById("reportSubject").value;
+  if (!subject) return;
+
   const total = students.length;
   let presentCount = 0;
 
@@ -152,5 +161,6 @@ window.loadReport = function() {
   });
 }
 
-// ------------------- SUBJECT CHANGE -------------------
+// ------------------- SUBJECT CHANGE EVENT -------------------
 document.getElementById("subject").addEventListener("change", loadTable);
+document.getElementById("reportSubject").addEventListener("change", window.loadReport);

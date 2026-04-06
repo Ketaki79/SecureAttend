@@ -2,126 +2,85 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Faculty Dashboard</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Icons -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 
 </head>
+
 
 <body class="bg-gradient-to-br from-[#020617] via-[#0f172a] to-black text-white min-h-screen flex font-sans">
 
 <!-- ================= SIDEBAR ================= -->
 <aside class="w-64 bg-slate-900 p-6 flex flex-col shadow-xl h-screen fixed left-0 top-0">
-
-  <!-- Logo -->
   <h2 class="text-2xl font-bold text-blue-400 mb-10">Faculty Panel</h2>
 
-  <!-- Menu -->
   <nav class="flex flex-col gap-3 flex-1">
-
-    <button onclick="showSection('attendance', this)" 
-      class="menu-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10">
+    <button onclick="showSection('attendance', this)" class="menu-btn flex items-center gap-3 p-3 rounded-lg hover:bg-white/10">
       <i class="fas fa-user-check"></i> Attendance
     </button>
-
-    <button onclick="showSection('reports', this)" 
-      class="menu-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10">
+    <button onclick="showSection('reports', this)" class="menu-btn flex items-center gap-3 p-3 rounded-lg hover:bg-white/10">
       <i class="fas fa-chart-bar"></i> Reports
     </button>
-
   </nav>
 
-  <!-- Logout (BOTTOM FIXED) -->
-  <div>
-    <a href="index.html" class="flex items-center gap-3 text-red-400 mt-auto hover:text-red-500">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </a>
-  </div>
-
+  <a href="index.html" class="flex items-center gap-3 text-red-400 mt-auto hover:text-red-500">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
 </aside>
 
 <!-- ================= MAIN ================= -->
 <main class="flex-1 p-10 ml-64 space-y-10">
 
-<!-- ================= ATTENDANCE ================= -->
 <div id="attendance" class="section">
-
   <h1 class="text-3xl font-bold mb-6">Mark Attendance</h1>
 
-  <!-- Subject Dropdown -->
   <div class="mb-6">
-    <select id="subject" 
-      class="w-64 px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white
-             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+    <select id="subject" class="w-64 px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white">
       <option value="" disabled selected>Select Subject</option>
       <option value="Blockchain" class="text-black">Blockchain</option>
       <option value="DBMS" class="text-black">DBMS</option>
     </select>
   </div>
 
-  <!-- Table Card -->
   <div class="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-xl">
-
     <div class="max-h-[400px] overflow-y-auto">
       <table class="w-full text-left">
-
         <thead class="bg-white/10 sticky top-0">
-          <tr>
-            <th class="p-4">Student</th>
-            <th class="p-4">Status</th>
-          </tr>
+          <tr><th class="p-4">Student</th><th class="p-4">Status</th></tr>
         </thead>
-
         <tbody id="table"></tbody>
-
       </table>
     </div>
-
   </div>
 
-  <!-- Submit -->
-  <button id="submitBtn"
-    onclick="submitAttendance()"
-    class="mt-6 px-8 py-3 rounded-xl font-semibold
-    bg-gradient-to-r from-blue-500 to-purple-600
-    hover:scale-105 hover:shadow-2xl transition duration-300">
+  <button id="submitBtn" onclick="submitAttendance()" class="mt-6 px-8 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 hover:shadow-2xl transition duration-300">
     Submit Attendance
   </button>
-
 </div>
 
-<!-- ================= REPORTS ================= -->
 <div id="reports" class="section hidden">
-
   <h1 class="text-3xl font-bold mb-6">Reports</h1>
-
-  <!-- Report Subject Dropdown -->
   <div class="mb-6">
-    <select id="reportSubject" onchange="loadReport()"
-      class="w-64 px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white
-             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+    <select id="reportSubject" onchange="loadReport()" class="w-64 px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white">
       <option value="Blockchain" class="text-black">Blockchain</option>
       <option value="DBMS" class="text-black">DBMS</option>
     </select>
   </div>
-
   <div class="text-xl mb-4">
     Attendance: <span id="percentage" class="text-blue-400">0%</span>
   </div>
-
   <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
     <canvas id="chart"></canvas>
   </div>
-
 </div>
 
 </main>
 
 <script src="js/faculty.js"></script>
-
+<script src="js/sidebar.js"></script>
 </body>
 </html>

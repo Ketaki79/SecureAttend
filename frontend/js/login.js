@@ -1,22 +1,62 @@
-const password = document.getElementById("password");
-const togglePassword = document.getElementById("togglePassword");
+// js/login.js
 
-togglePassword.classList.add("fa-eye-slash");
+const togglePassword = document.getElementById('togglePassword');
+const password = document.getElementById('password');
 
-togglePassword.onclick = () => {
-  if (password.type === "password") {
-    password.type = "text";
-    togglePassword.classList.replace("fa-eye-slash", "fa-eye");
-  } else {
-    password.type = "password";
-    togglePassword.classList.replace("fa-eye", "fa-eye-slash");
+togglePassword.addEventListener('click', () => {
+  const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+  password.setAttribute('type', type);
+  togglePassword.classList.toggle('fa-eye-slash');
+});
+
+async function login() {
+  const email = document.getElementById('email').value.trim();
+  const passwordValue = document.getElementById('password').value.trim();
+  const role = document.getElementById('role').value;
+  const error = document.getElementById('error');
+
+  // Clear previous error
+  error.textContent = '';
+
+  if (!email || !passwordValue || !role) {
+    error.textContent = 'Please fill all fields';
+    return;
   }
-};
 
-function login() {
-  const role = document.getElementById("role").value;
+  try {
+    // Example POST request to your backend
+    const res = await fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: passwordValue, role })
+    });
 
-  if (role === "admin") location.href = "admin.html";
-  else if (role === "faculty") location.href = "faculty.html";
-  else location.href = "student.html";
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Handle errors from server
+      if (data.error === 'UserNotFound') {
+        error.textContent = 'Register first';
+      } else if (data.error === 'InvalidCredentials') {
+        error.textContent = 'Enter correct email or password';
+      } else {
+        error.textContent = 'Something went wrong';
+      }
+      return;
+    }
+
+    // Successful login
+    // Redirect based on role
+    if (role === 'admin') {
+      window.location.href = 'admin.html';
+    } else if (role === 'faculty') {
+      window.location.href = 'faculty.html';
+    } else if (role === 'student') {
+      window.location.href = 'student.html';
+    }
+    
+  } catch (err) {
+    console.error(err);
+    error.textContent = 'Server not responding';
+  }
 }

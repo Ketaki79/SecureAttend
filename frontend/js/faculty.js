@@ -1,121 +1,103 @@
-// ================= ACTIVE MENU =================
-function showSection(id, el) {
-  document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+// ================= FACULTY.JS =================
+let web3;
+let userAccount;
+let contract;
 
-  document.querySelectorAll(".menu-item").forEach(btn => btn.classList.remove("bg-blue-600"));
-  if(el) el.classList.add("bg-blue-600");
+const contractAddress = "0xYourGanacheContractAddress"; // Replace with your contract
+const contractABI = [ /* ABI JSON here */ ];
+
+let students = [];         // Will fetch from blockchain
+const subjects = ["Blockchain", "DBMS"]; // Example subjects
+let attendanceData = {};   // { subject: { studentName: "present"/"absent" } }
+
+// ------------------- CONNECT METAMASK -------------------
+async function connectMetaMask() {
+  if (window.ethereum) {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      userAccount = accounts[0];
+      web3 = new Web3(window.ethereum);
+      contract = new web3.eth.Contract(contractABI, contractAddress);
+
+      console.log("Connected MetaMask:", userAccount);
+      await loadStudents();
+    } catch (err) {
+      console.error(err);
+      alert("MetaMask connection failed!");
+    }
+  } else {
+    alert("Please install MetaMask!");
+  }
 }
 
-// ================= STUDENTS =================
-const students = [
-  "Rahul Sharma",
-  "Priya Patel",
-  "Amit Verma",
-  "Sneha Iyer"
-];
+// ------------------- LOAD STUDENTS & ATTENDANCE -------------------
+async function loadStudents() {
+  students = [];
+  attendanceData = {};
 
-let attendanceData = {};
+  try {
+    const studentList = await contract.methods.getStudents().call();
+    students = studentList.map(s => ({ name: s }));
 
-// ================= LOAD TABLE =================
+    for (let sub of subjects) {
+      attendanceData[sub] = {};
+      for (let student of students) {
+        const status = await contract.methods.getAttendance(student.name, sub).call();
+        attendanceData[sub][student.name] = status ? "present" : "absent";
+      }
+    }
+  } catch (err) {
+    console.error("Blockchain load error:", err);
+  }
+
+  loadTable();
+}
+
+// ------------------- LOAD ATTENDANCE TABLE -------------------
 function loadTable() {
   const subject = document.getElementById("subject").value;
-  if (!attendanceData[subject]) attendanceData[subject] = {};
-
   const table = document.getElementById("table");
   table.innerHTML = "";
 
-  students.forEach(name => {
-    const status = attendanceData[subject][name] || "";
-
+  students.forEach(s => {
+    const status = attendanceData[subject]?.[s.name] || "";
     table.innerHTML += `
       <tr class="border-b border-white/10 hover:bg-white/10">
-        <td class="p-4">${name}</td>
+        <td class="p-4">${s.name}</td>
         <td class="p-4 flex gap-3">
-
-          <button onclick="mark('${name}','present')" 
-            class="px-4 py-1 rounded-full text-sm
-            ${status==='present' ? 'bg-green-500 scale-105' : 'bg-white/10 hover:bg-green-500'}">
+          <button onclick="mark('${s.name}','present')" 
+            class="px-4 py-1 rounded-full text-sm ${status==='present' ? 'bg-green-500 scale-105' : 'bg-white/10 hover:bg-green-500'}">
             Present
           </button>
-
-          <button onclick="mark('${name}','absent')" 
-            class="px-4 py-1 rounded-full text-sm
-            ${status==='absent' ? 'bg-red-500 scale-105' : 'bg-white/10 hover:bg-red-500'}">
+          <button onclick="mark('${s.name}','absent')" 
+            class="px-4 py-1 rounded-full text-sm ${status==='absent' ? 'bg-red-500 scale-105' : 'bg-white/10 hover:bg-red-500'}">
             Absent
           </button>
-
         </td>
       </tr>
     `;
   });
 }
 
-// ================= MARK =================
-function mark(name, status) {
+// ------------------- MARK ATTENDANCE -------------------
+async function mark(studentName, status) {
   const subject = document.getElementById("subject").value;
-  attendanceData[subject][name] = status;
+  if (!attendanceData[subject]) attendanceData[subject] = {};
+
+  attendanceData[subject][studentName] = status;
   loadTable();
+
+  // Save on blockchain
+  try {
+    await contract.methods.markAttendance(studentName, subject, status === "present").send({ from: userAccount });
+    console.log(`Attendance marked: ${studentName} - ${subject} - ${status}`);
+  } catch (err) {
+    console.error("Blockchain error:", err);
+  }
 }
 
-// Initialize table on page load
-loadTable();
+// ------------------- INITIAL LOAD -------------------
+window.addEventListener('load', async () => {
+  await connectMetaMask();
+});
 document.getElementById("subject").addEventListener("change", loadTable);
-
-// ================= SUBMIT =================
-function submitAttendance() {
-  const btn = document.getElementById("submitBtn");
-
-  btn.innerText = "Saving...";
-  btn.classList.add("opacity-70");
-
-  setTimeout(() => {
-    btn.innerText = "✅ Saved";
-    btn.classList.add("bg-green-600");
-
-    setTimeout(() => {
-      btn.innerText = "Submit Attendance";
-      btn.classList.remove("bg-green-600");
-    }, 2000);
-
-  }, 1000);
-}
-
-// ================= REPORT =================
-let chart;
-
-function loadReport() {
-  const subject = document.getElementById("reportSubject").value;
-  const data = attendanceData[subject] || {};
-
-  const names = Object.keys(data);
-  const values = names.map(n => data[n] === "present" ? 1 : 0);
-
-  let present = values.reduce((a,b)=>a+b,0);
-  let percentage = names.length ? ((present/names.length)*100).toFixed(1) : 0;
-
-  document.getElementById("percentage").innerText = percentage + "%";
-
-  if (chart) chart.destroy();
-
-  chart = new Chart(document.getElementById("chart"), {
-    type: 'bar',
-    data: {
-      labels: names,
-      datasets: [{ 
-        label: 'Attendance',
-        data: values,
-        backgroundColor: values.map(v => v ? '#22c55e' : '#ef4444')
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 1,
-          ticks: { stepSize: 1 }
-        }
-      }
-    }
-  });
-}

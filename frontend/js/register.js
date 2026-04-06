@@ -65,10 +65,16 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
   if([firstNameError, lastNameError, emailError, passwordError, confirmPasswordError].every(el => !el.classList.contains('show')) && role.value){
     const data = { firstName:firstName.value, lastName:lastName.value, email:email.value, password:password.value, role:role.value };
     try {
-      const res = await fetch('/register', {
+      const res = await fetch('http://localhost:5000/api/register', {
         method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
       });
-      const result = await res.json();
+      let result;
+      try {
+          result = await res.json();
+      } catch {
+          alert("Server error (not JSON)");
+          return;
+      }
       if(result.success){
         successPopup.classList.add('show');
         setTimeout(() => { successPopup.classList.remove('show'); window.location.href='login.html'; }, 2500);

@@ -4,131 +4,83 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Dashboard</title>
-
 <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
 
 <body class="bg-gradient-to-br from-[#020617] via-[#0f172a] to-black text-white min-h-screen flex font-sans">
 
-<!-- ================= SIDEBAR (FIXED) ================= -->
 <aside class="w-64 bg-slate-900 p-6 flex flex-col h-screen fixed left-0 top-0 overflow-hidden">
   <h2 class="text-2xl font-bold text-blue-400 mb-10">SecureAttend</h2>
   <nav class="flex flex-col gap-5 text-lg">
-    <button onclick="showSection('dashboard', this)" class="menu-btn flex items-center gap-3">
-      <i class="fas fa-home"></i> Dashboard
-    </button>
-    <button onclick="showSection('attendance', this)" class="menu-btn flex items-center gap-3">
-      <i class="fas fa-user-check"></i> My Attendance
-    </button>
-    <button onclick="showSection('profile', this)" class="menu-btn flex items-center gap-3">
-      <i class="fas fa-user"></i> Profile
-    </button>
+    <button onclick="showSection('dashboard', this)" class="menu-btn flex items-center gap-3">Dashboard</button>
+    <button onclick="showSection('attendance', this)" class="menu-btn flex items-center gap-3">My Attendance</button>
+    <button onclick="showSection('profile', this)" class="menu-btn flex items-center gap-3">Profile</button>
   </nav>
-  <a href="index.html" class="flex items-center gap-3 text-red-400 mt-auto hover:text-red-500">
-    <i class="fas fa-sign-out-alt"></i> Logout
-  </a>
+  <a href="index.html" class="flex items-center gap-3 text-red-400 mt-auto hover:text-red-500">Logout</a>
 </aside>
 
-<!-- ================= MAIN ================= -->
 <main class="flex-1 p-10 ml-64 space-y-10">
 
-<!-- ================= DASHBOARD + ANALYSIS ================= -->
 <div id="dashboard" class="section">
-
   <h1 class="text-3xl font-bold mb-6">Welcome Student 👋</h1>
 
-  <!-- Stats -->
   <div class="grid grid-cols-3 gap-6 mb-10">
     <div class="bg-white/5 p-6 rounded-xl border border-white/10">
       <h2>Total Lectures</h2>
-      <p class="text-3xl mt-2">40</p>
+      <p id="totalLectures" class="text-3xl mt-2">0</p>
     </div>
-
     <div class="bg-white/5 p-6 rounded-xl border border-white/10">
       <h2>Attended</h2>
-      <p class="text-3xl mt-2 text-green-400">32</p>
+      <p id="attendedLectures" class="text-3xl mt-2 text-green-400">0</p>
     </div>
-
     <div class="bg-white/5 p-6 rounded-xl border border-white/10">
       <h2>Attendance %</h2>
-      <p class="text-3xl mt-2 text-blue-400">80%</p>
+      <p id="studentPercentage" class="text-3xl mt-2 text-blue-400">0%</p>
     </div>
   </div>
 
-  <!-- Pie Chart -->
   <div class="bg-white/5 p-6 rounded-xl border border-white/10 w-[400px]">
     <h2 class="mb-4 text-lg">Attendance Analysis</h2>
-    <canvas id="pieChart"></canvas>
+    <canvas id="studentChart"></canvas>
   </div>
-
 </div>
 
-<!-- ================= ATTENDANCE ================= -->
 <div id="attendance" class="section hidden">
   <h1 class="text-3xl font-bold mb-6">My Attendance</h1>
-
   <div class="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-    <table class="w-full text-left">
+    <table class="w-full text-left" id="myAttendanceTable">
       <thead class="bg-white/10">
-        <tr>
-          <th class="p-4">Subject</th>
-          <th class="p-4">Status</th>
-        </tr>
+        <tr><th class="p-4">Subject</th><th class="p-4">Status</th></tr>
       </thead>
-
-      <tbody>
-        <tr class="border-b border-white/10">
-          <td class="p-4">Blockchain</td>
-          <td class="p-4 text-green-400">Present</td>
-        </tr>
-
-        <tr class="border-b border-white/10">
-          <td class="p-4">DBMS</td>
-          <td class="p-4 text-red-400">Absent</td>
-        </tr>
-
-        <tr>
-          <td class="p-4">AI</td>
-          <td class="p-4 text-green-400">Present</td>
-        </tr>
-      </tbody>
+      <tbody></tbody>
     </table>
   </div>
 </div>
 
-<!-- ================= PROFILE ================= -->
 <div id="profile" class="section hidden">
   <h1 class="text-3xl font-bold mb-6">Profile</h1>
-
-  <div class="bg-white/5 p-6 rounded-xl border border-white/10 w-96">
+  <div class="bg-white/5 p-6 rounded-xl border border-white/10 w-96" id="profile">
     <div class="flex items-center gap-4 mb-4">
-      <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-2xl">
-        S
-      </div>
+      <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-2xl">S</div>
       <div>
-        <h2 class="text-xl font-semibold">Student Name</h2>
-        <p class="text-sm text-gray-400">student@email.com</p>
+        <h2 class="text-xl font-semibold" id="studentName">Student Name</h2>
+        <p class="text-sm text-gray-400" id="studentEmail">student@email.com</p>
       </div>
     </div>
-
     <div class="space-y-2">
-      <p><strong>Roll No:</strong> 12345</p>
-      <p><strong>Branch:</strong> Computer Engineering</p>
-      <p><strong>Semester:</strong> 6</p>
-      <p><strong>Email:</strong> john@email.com</p>
-      <p><strong>Phone:</strong> +91 9876543210</p>
+      <p><strong>Roll No:</strong> <span id="studentRoll">12345</span></p>
+      <p><strong>Branch:</strong> <span id="sBranch">CSE</span></p>
+      <p><strong>Semester:</strong> <span id="sSem">6</span></p>
+      <p><strong>Email:</strong> <span id="studentEmail2">student@email.com</span></p>
     </div>
   </div>
 </div>
 
 </main>
 
-<!-- ================= SCRIPT ================= -->
 <script src="js/student.js"></script>
 <script src="js/sidebar.js"></script>
-
 </body>
 </html>

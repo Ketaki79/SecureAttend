@@ -1,87 +1,86 @@
+// student.js
+
 import { connectWallet, contract, account } from "./blockchain.js";
 
-let subjects = [];
-let attendanceData = {}; // { subject: "present"/"absent" }
+let subjects = [];        // Subjects for this student
+let attendanceRecords = []; // {subjectId, subjectName, present, total}
 
 // ------------------- INITIAL LOAD -------------------
 window.addEventListener("load", async () => {
   const connected = await connectWallet();
-  if (connected) await loadAttendance();
+  if (connected) {
+    await loadSubjects();
+    await loadAttendance();
+  }
 });
 
-// ------------------- LOAD ATTENDANCE FROM BLOCKCHAIN -------------------
-async function loadAttendance() {
-  attendanceData = {};
-  subjects = [];
+// ------------------- LOAD SUBJECTS -------------------
+async function loadSubjects() {
+  // Fetch subjects for this student from backend
+  const res = await fetch(`/api/studentSubjects?wallet=${account}`);
+  subjects = await res.json(); // [{id:1, name:"DBMS"}, {id:2, name:"Blockchain"}]
 
-  try {
-    const records = await contract.methods.getRecords().call();
-    const uniqueSubjects = new Set();
-
-    records.forEach(r => {
-      uniqueSubjects.add(r.subject);
-      if (r.student.toLowerCase() === account.toLowerCase()) {
-        attendanceData[r.subject] = r.present ? "present" : "absent";
-      }
-    });
-
-    subjects = [...uniqueSubjects];
-    renderMyAttendance();
-    renderStudentReport();
-
-  } catch (err) {
-    console.error("Blockchain load error:", err);
-    alert("Failed to fetch attendance from blockchain");
-  }
-}
-
-// ------------------- RENDER ATTENDANCE TABLE -------------------
-function renderMyAttendance() {
-  const tbody = document.getElementById("myAttendanceTable").querySelector("tbody");
-  tbody.innerHTML = "";
+  // Populate attendance table
+  const tableBody = document.querySelector("#attendance tbody");
+  tableBody.innerHTML = "";
 
   subjects.forEach(sub => {
-    const status = attendanceData[sub] || "absent";
-    tbody.innerHTML += `
-      <tr class="border-b border-white/10 hover:bg-white/10">
-        <td class="p-4">${sub}</td>
-        <td class="p-4">
-          <span class="${status==='present' ? 'text-green-500' : 'text-red-500'} font-semibold">
-            ${status.toUpperCase()}
-          </span>
-        </td>
+    tableBody.innerHTML += `
+      <tr class="border-b border-white/10">
+        <td class="p-4">${sub.name}</td>
+        <td class="p-4 text-yellow-400" id="status-${sub.id}">Loading...</td>
       </tr>
     `;
   });
 }
 
-// ------------------- STUDENT REPORT CHART -------------------
-let studentChart;
-function renderStudentReport() {
-  const data = subjects.map(sub => attendanceData[sub] === "present" ? 1 : 0);
-  const total = subjects.length;
-  const presentCount = data.reduce((a,b)=>a+b,0);
-  const percentage = total ? ((presentCount/total)*100).toFixed(1) : 0;
+// ------------------- LOAD ATTENDANCE -------------------
+async function loadAttendance() {
+  // Fetch attendance data from backend or blockchain
+  const res = await fetch(`/api/studentAttendance?wallet=${account}`);
+  attendanceRecords = await res.json(); 
+  // Example: [{subjectId:1, subjectName:"DBMS", present:12, total:15}, ...]
 
-  document.getElementById("totalLectures").innerText = total;
-  document.getElementById("attendedLectures").innerText = presentCount;
-  document.getElementById("studentPercentage").innerText = percentage + "%";
+  let totalLectures = 0;
+  let totalAttended = 0;
 
-  if(studentChart) studentChart.destroy();
+  attendanceRecords.forEach(record => {
+    const statusCell = document.getElementById(`status-${record.subjectId}`);
+    const percentage = record.total ? Math.round((record.present / record.total) * 100) : 0;
+    statusCell.textContent = `${percentage}%`;
 
-  const ctx = document.getElementById("studentChart").getContext("2d");
-  studentChart = new Chart(ctx, {
-    type: 'doughnut',
+    // Color code: green >= 75, yellow 50-74, red <50
+    if (percentage >= 75) statusCell.className = "p-4 text-green-400";
+    else if (percentage >= 50) statusCell.className = "p-4 text-yellow-400";
+    else statusCell.className = "p-4 text-red-400";
+
+    totalLectures += record.total;
+    totalAttended += record.present;
+  });
+
+  // Update dashboard summary
+  const totalPercent = totalLectures ? Math.round((totalAttended / totalLectures) * 100) : 0;
+  document.querySelector("#dashboard .text-3xl.text-blue-400").textContent = `${totalPercent}%`;
+
+  // Render pie chart
+  const ctx = document.getElementById("pieChart").getContext("2d");
+  new Chart(ctx, {
+    type: "pie",
     data: {
-      labels: ["Present", "Absent"],
+      labels: attendanceRecords.map(r => r.subjectName),
       datasets: [{
-        data: [presentCount, total-presentCount],
-        backgroundColor: ["#22c55e", "#ef4444"]
+        label: "Attendance %",
+        data: attendanceRecords.map(r => r.present),
+        backgroundColor: [
+          "rgba(34,197,94,0.7)",
+          "rgba(248,211,77,0.7)",
+          "rgba(239,68,68,0.7)",
+          "rgba(59,130,246,0.7)"
+        ]
       }]
     },
     options: {
-      responsive: true,
-      plugins: { legend: { position: "bottom", labels: { color: "white" } } }
+      plugins: { legend: { position: "bottom" } }
     }
   });
 }

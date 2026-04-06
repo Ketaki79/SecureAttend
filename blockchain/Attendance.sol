@@ -2,33 +2,21 @@
 pragma solidity ^0.8.0;
 
 contract Attendance {
-    struct Student {
-        string name;
-        bool isPresent;
+
+    struct Record {
+        address student;
+        string subject;
+        uint date;
+        bool present;
     }
 
-    mapping(address => Student) public students;
-    address public admin;
+    Record[] public records;
 
-    constructor() {
-        admin = msg.sender;
+    function markAttendance(address _student, string memory _subject, bool _present) public {
+        records.push(Record(_student, _subject, block.timestamp, _present));
     }
 
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can perform this");
-        _;
-    }
-
-    function addStudent(address _studentAddr, string memory _name) public onlyAdmin {
-        students[_studentAddr] = Student(_name, false);
-    }
-
-    function markPresent(address _studentAddr) public onlyAdmin {
-        students[_studentAddr].isPresent = true;
-    }
-
-    function getStudent(address _studentAddr) public view returns (string memory, bool) {
-        Student memory s = students[_studentAddr];
-        return (s.name, s.isPresent);
+    function getRecords() public view returns (Record[] memory) {
+        return records;
     }
 }

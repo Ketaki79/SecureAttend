@@ -1,24 +1,24 @@
 let web3;
+let contract;
 let account;
 
+const contractAddress = "PASTE_CONTRACT_ADDRESS";
+const abi = [PASTE_ABI_HERE];
+
 async function connectWallet() {
-  if (typeof window.ethereum !== "undefined") {
-    try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
 
-      web3 = new Web3(window.ethereum);
-      account = accounts[0];
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
 
-      console.log("Connected:", account);
-      alert("Wallet Connected: " + account);
+    account = accounts[0];
 
-    } catch (err) {
-      console.error("MetaMask Error:", err);
-      alert("User denied MetaMask access");
-    }
+    contract = new web3.eth.Contract(abi, contractAddress);
+
+    console.log("Connected:", account);
   } else {
-    alert("MetaMask not installed");
+    alert("Install MetaMask");
   }
 }

@@ -18,6 +18,11 @@
 <aside class="w-64 bg-slate-900 p-6 flex flex-col shadow-xl h-screen fixed left-0 top-0">
   <h2 class="text-2xl font-bold text-blue-400 mb-10">Faculty Panel</h2>
 
+  <button onclick="connectWallet()" 
+    class="mb-4 px-6 py-2 bg-green-600 rounded-lg hover:bg-green-700">
+    Connect MetaMask
+  </button>
+
   <nav class="flex flex-col gap-3 flex-1">
     <button onclick="showSection('attendance', this)" class="menu-btn flex items-center gap-3 p-3 rounded-lg hover:bg-white/10">
       <i class="fas fa-user-check"></i> Attendance
@@ -32,11 +37,17 @@
   </a>
 </aside>
 
+
 <!-- ================= MAIN ================= -->
 <main class="flex-1 p-10 ml-64 space-y-10">
 
 <div id="attendance" class="section">
   <h1 class="text-3xl font-bold mb-6">Mark Attendance</h1>
+
+  <button onclick="connectWallet()" 
+    class="mb-4 px-6 py-2 bg-green-600 rounded-lg hover:bg-green-700">
+    Connect MetaMask
+  </button>
 
   <div class="mb-6">
     <select id="subject" class="w-64 px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white">
@@ -78,9 +89,13 @@
   </div>
 </div>
 
+
 </main>
 
 <script src="js/faculty.js"></script>
 <script src="js/sidebar.js"></script>
+<script src="js/blockchain.js"></script>
+
+
 </body>
 </html>

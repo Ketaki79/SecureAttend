@@ -220,7 +220,7 @@ function submitAttendance() {
   btn.classList.add("opacity-70");
 
   setTimeout(() => {
-    btn.innerText = "✅ Saved";
+    btn.innerText = "Saved";
     btn.classList.add("bg-green-600");
 
     setTimeout(() => {

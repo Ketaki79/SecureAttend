@@ -2,6 +2,9 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const db = require('./db');
+db.query("SELECT 1")
+  .then(() => console.log("MySQL Connected Successfully"))
+  .catch(err => console.log("DB Error", err));
 
 dotenv.config();
 const app = express();

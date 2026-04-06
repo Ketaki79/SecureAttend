@@ -3,8 +3,7 @@ let web3;
 let userAccount;
 let contract;
 
-const contractAddress = "0xYourGanacheContractAddress"; // Replace with your contract
-const contractABI = [ /* ABI JSON here */ ];
+import { connectWallet, contract, account } from "./blockchain.js";
 
 let students = [];         // Will fetch from blockchain
 const subjects = ["Blockchain", "DBMS"]; // Example subjects

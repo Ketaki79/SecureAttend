@@ -1,55 +1,75 @@
-// ================= FACULTY.JS =================
-let web3;
-let userAccount;
-let contract;
-
+// ================= faculty.js =================
 import { connectWallet, contract, account } from "./blockchain.js";
 
-let students = [];         // Will fetch from blockchain
-const subjects = ["Blockchain", "DBMS"]; // Example subjects
-let attendanceData = {};   // { subject: { studentName: "present"/"absent" } }
+let students = [];
+let attendanceData = {};   // { subject: { student: "present"/"absent" } }
 
-// ------------------- CONNECT METAMASK -------------------
-async function connectMetaMask() {
-  if (window.ethereum) {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      userAccount = accounts[0];
-      web3 = new Web3(window.ethereum);
-      contract = new web3.eth.Contract(contractABI, contractAddress);
-
-      console.log("Connected MetaMask:", userAccount);
-      await loadStudents();
-    } catch (err) {
-      console.error(err);
-      alert("MetaMask connection failed!");
-    }
-  } else {
-    alert("Please install MetaMask!");
-  }
-}
+// ------------------- INITIALIZE -------------------
+window.addEventListener("load", async () => {
+  const connected = await connectWallet();
+  if (connected) await loadStudents();
+});
 
 // ------------------- LOAD STUDENTS & ATTENDANCE -------------------
 async function loadStudents() {
   students = [];
   attendanceData = {};
+  const uniqueSubjects = new Set();
 
   try {
-    const studentList = await contract.methods.getStudents().call();
-    students = studentList.map(s => ({ name: s }));
+    const records = await contract.methods.getRecords().call();
 
-    for (let sub of subjects) {
-      attendanceData[sub] = {};
-      for (let student of students) {
-        const status = await contract.methods.getAttendance(student.name, sub).call();
-        attendanceData[sub][student.name] = status ? "present" : "absent";
-      }
-    }
+    records.forEach(r => {
+      // Add unique students
+      if (!students.find(s => s.name === r.student)) students.push({ name: r.student });
+
+      // Add unique subjects
+      uniqueSubjects.add(r.subject);
+
+      // Attendance data
+      if (!attendanceData[r.subject]) attendanceData[r.subject] = {};
+      attendanceData[r.subject][r.student] = r.present ? "present" : "absent";
+    });
+
+    // Populate dropdowns dynamically
+    populateSubjectDropdown([...uniqueSubjects]);
+    populateReportDropdown([...uniqueSubjects]);
+
   } catch (err) {
     console.error("Blockchain load error:", err);
+    alert("Failed to load attendance from blockchain");
   }
 
   loadTable();
+}
+
+// ------------------- POPULATE DROPDOWNS -------------------
+function populateSubjectDropdown(subjectsList) {
+  const select = document.getElementById("subject");
+  select.innerHTML = '<option value="" disabled selected>Select Subject</option>';
+
+  subjectsList.forEach(sub => {
+    const option = document.createElement("option");
+    option.value = sub;
+    option.textContent = sub;
+    option.classList.add("text-black");
+    select.appendChild(option);
+  });
+
+  if (subjectsList.length > 0) select.value = subjectsList[0];
+}
+
+function populateReportDropdown(subjectsList) {
+  const select = document.getElementById("reportSubject");
+  select.innerHTML = "";
+
+  subjectsList.forEach(sub => {
+    const option = document.createElement("option");
+    option.value = sub;
+    option.textContent = sub;
+    option.classList.add("text-black");
+    select.appendChild(option);
+  });
 }
 
 // ------------------- LOAD ATTENDANCE TABLE -------------------
@@ -79,24 +99,58 @@ function loadTable() {
 }
 
 // ------------------- MARK ATTENDANCE -------------------
-async function mark(studentName, status) {
+window.mark = async function(studentName, status) {
   const subject = document.getElementById("subject").value;
-  if (!attendanceData[subject]) attendanceData[subject] = {};
 
+  if (!attendanceData[subject]) attendanceData[subject] = {};
   attendanceData[subject][studentName] = status;
+
   loadTable();
 
-  // Save on blockchain
   try {
-    await contract.methods.markAttendance(studentName, subject, status === "present").send({ from: userAccount });
-    console.log(`Attendance marked: ${studentName} - ${subject} - ${status}`);
+    await contract.methods
+      .markAttendance(studentName, subject, status === "present")
+      .send({ from: account });
+    console.log(`Marked ${studentName} as ${status} for ${subject}`);
   } catch (err) {
     console.error("Blockchain error:", err);
+    alert("Failed to mark attendance on blockchain");
   }
 }
 
-// ------------------- INITIAL LOAD -------------------
-window.addEventListener('load', async () => {
-  await connectMetaMask();
-});
+// ------------------- REPORTS -------------------
+window.loadReport = function() {
+  const subject = document.getElementById("reportSubject").value;
+  const total = students.length;
+  let presentCount = 0;
+
+  students.forEach(s => {
+    if (attendanceData[subject]?.[s.name] === "present") presentCount++;
+  });
+
+  const percentage = total > 0 ? Math.round((presentCount / total) * 100) : 0;
+  document.getElementById("percentage").textContent = `${percentage}%`;
+
+  const ctx = document.getElementById("chart").getContext("2d");
+  if (window.attendanceChart) window.attendanceChart.destroy();
+
+  window.attendanceChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Present", "Absent"],
+      datasets: [{
+        data: [presentCount, total - presentCount],
+        backgroundColor: ["#22c55e", "#ef4444"]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom", labels: { color: "white" } }
+      }
+    }
+  });
+}
+
+// ------------------- SUBJECT CHANGE -------------------
 document.getElementById("subject").addEventListener("change", loadTable);

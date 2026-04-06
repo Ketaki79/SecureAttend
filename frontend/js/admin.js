@@ -1,53 +1,36 @@
 // ================= ADMIN.JS =================
 
+// ------------------- IMPORT BLOCKCHAIN MODULE -------------------
+import * as blockchain from './blockchain.js';
+
 // ------------------- DATA ARRAYS -------------------
 let students = [];          // Local students array for UI
 let faculty = [];           // Local faculty array
-let subjects = ["Blockchain", "DBMS"]; // Example subjects
+let subjects = [];          // Example subjects
 
 let attendanceData = {};    // { subject: { studentName: "present"/"absent" } }
 
-// ------------------- METAMASK / GANACHE -------------------
-let web3;
+// ------------------- METAMASK -------------------
 let userAccount;
-let contract;
 
-const contractAddress = "0xYourGanacheContractAddress"; // Replace with your deployed contract
-const contractABI = [ /* ABI JSON here */ ];
-
+// ------------------- CONNECT METAMASK -------------------
 async function connectMetaMask() {
-  if (window.ethereum) {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      userAccount = accounts[0];
-      web3 = new Web3(window.ethereum);
-      contract = new web3.eth.Contract(contractABI, contractAddress);
+  try {
+    userAccount = await blockchain.connectMetaMask();
+    console.log("Connected MetaMask account:", userAccount);
+    alert("MetaMask Connected: " + userAccount);
 
-      console.log("Connected MetaMask account:", userAccount);
-      alert("MetaMask Connected: " + userAccount);
-
-      await loadStudentsFromBlockchain();
-    } catch (err) {
-      console.error(err);
-      alert("MetaMask access denied!");
-    }
-  } else {
-    alert("Please install MetaMask!");
+    await loadStudentsFromBlockchain();
+  } catch (err) {
+    console.error("MetaMask connection failed:", err);
+    alert(err.message);
   }
 }
 
 // ------------------- LOAD STUDENTS FROM BLOCKCHAIN -------------------
 async function loadStudentsFromBlockchain() {
-  if (!contract) return;
   try {
-    const count = await contract.methods.getStudentCount().call();
-    students = [];
-
-    for (let i = 0; i < count; i++) {
-      const s = await contract.methods.students(i).call();
-      students.push({ name: s.name, sem: s.sem, email: "", branch: "" }); // Fill email/branch locally if needed
-    }
-
+    students = await blockchain.getStudents();
     renderStudents();
     updateCounts();
   } catch (err) {
@@ -76,25 +59,19 @@ async function addStudent() {
     return;
   }
 
-  // Save to blockchain
-  if (contract && userAccount) {
-    try {
-      await contract.methods.addStudent(name, sem).send({ from: userAccount });
-      console.log("Student added on blockchain");
-    } catch (err) {
-      console.error("Blockchain error:", err);
-      alert("Failed to add student on blockchain!");
-      return;
-    }
+  try {
+    await blockchain.addStudent(name, sem, userAccount);
+    console.log("Student added on blockchain");
+
+    students.push({ name, email, branch, sem });
+    sName.value = sEmail.value = sBranch.value = sSem.value = "";
+    renderStudents();
+    updateCounts();
+    alert("Student added successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to add student!");
   }
-
-  // Save locally
-  students.push({ name, email, branch, sem });
-  sName.value = sEmail.value = sBranch.value = sSem.value = "";
-
-  renderStudents();
-  updateCounts();
-  alert("Student added successfully!");
 }
 
 // ------------------- RENDER STUDENTS -------------------
@@ -166,9 +143,17 @@ function updateCounts() {
 }
 
 // ------------------- ATTENDANCE -------------------
-function loadTable() {
+async function loadTable() {
   const subject = document.getElementById("subject").value;
   if (!attendanceData[subject]) attendanceData[subject] = {};
+
+  // Load attendance from blockchain for selected subject
+  try {
+    const blockchainAttendance = await blockchain.getAttendance(subject);
+    Object.assign(attendanceData[subject], blockchainAttendance);
+  } catch (err) {
+    console.error("Failed to load attendance from blockchain:", err);
+  }
 
   const table = document.getElementById("table");
   table.innerHTML = "";
@@ -195,7 +180,7 @@ function loadTable() {
   });
 }
 
-// Mark attendance (local + blockchain)
+// ------------------- MARK ATTENDANCE -------------------
 async function mark(name, status) {
   const subject = document.getElementById("subject").value;
   if (!attendanceData[subject]) attendanceData[subject] = {};
@@ -203,13 +188,11 @@ async function mark(name, status) {
   attendanceData[subject][name] = status;
   loadTable();
 
-  if (contract && userAccount) {
-    try {
-      await contract.methods.markAttendance(name, subject, status === "present").send({ from: userAccount });
-      console.log("Attendance saved on blockchain");
-    } catch (err) {
-      console.error("Blockchain attendance failed:", err);
-    }
+  try {
+    await blockchain.markAttendance(name, subject, status === "present", userAccount);
+    console.log("Attendance saved on blockchain");
+  } catch (err) {
+    console.error("Blockchain attendance failed:", err);
   }
 }
 

@@ -84,12 +84,17 @@
         <option value="student" class="text-black">📘 Student</option>
       </select>
 
-      <!-- Wallet Connect -->
+      <!-- Wallet Auto Display -->
       <div class="mb-4 flex items-center gap-2">
-        <button type="button" id="connectWalletBtn" class="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600">Connect Wallet</button>
-        <input type="text" id="walletAddress" placeholder="Wallet Address" class="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 text-white" readonly>
+        <input type="text" id="walletAddress"
+          class="w-full px-3 py-1.5 text-sm bg-white/10 rounded-lg border border-white/20 text-white"
+          value="Connecting wallet..."
+          readonly>
       </div>
-      <p id="walletError" class="text-red-500 text-sm mt-1 error-slide">Please connect your wallet!</p>
+      <p id="walletError" class="text-red-500 text-sm mt-1 error-slide">
+        Please connect your wallet!
+      </p>
+      
 
       <!-- Register Button -->
       <button type="submit" class="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white font-semibold bg-[length:200%_200%] animate-gradient-shimmer shadow-lg shadow-blue-500/30 btn-glow">

@@ -13,7 +13,6 @@ const successPopup = document.getElementById('successPopup');
 const togglePassword = document.getElementById('togglePassword');
 const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
 
-
 // ---------------- EYE TOGGLE ----------------
 function toggleEye(input, icon){
   input.type = input.type === 'password' ? 'text' : 'password';
@@ -22,7 +21,6 @@ function toggleEye(input, icon){
 
 togglePassword.addEventListener('click', ()=>toggleEye(password, togglePassword));
 toggleConfirmPassword.addEventListener('click', ()=>toggleEye(confirmPassword, toggleConfirmPassword));
-
 
 // ---------------- AUTO WALLET ----------------
 async function connectWalletAuto() {
@@ -41,29 +39,54 @@ async function connectWalletAuto() {
 
 window.addEventListener("load", connectWalletAuto);
 
+// ---------------- DYNAMIC VALIDATION ----------------
+function validateField(input, errorId, validator) {
+  const errorEl = document.getElementById(errorId);
+  input.addEventListener('input', () => {
+    if (validator(input.value)) {
+      errorEl.classList.remove('show');
+    } else {
+      errorEl.classList.add('show');
+    }
+  });
+}
+
+// Validators
+const minLength3 = val => val.length >= 3;
+const emailValidator = val => val.endsWith('@gmail.com');
+const passwordValidator = val => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(val);
+const confirmPasswordValidator = val => val === password.value;
+
+// Attach dynamic validation
+validateField(firstName, 'firstNameError', minLength3);
+validateField(lastName, 'lastNameError', minLength3);
+validateField(email, 'emailError', emailValidator);
+validateField(password, 'passwordError', passwordValidator);
+validateField(confirmPassword, 'confirmPasswordError', confirmPasswordValidator);
 
 // ---------------- FORM SUBMIT ----------------
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  walletError.textContent = "";
+  // Clear wallet error
+  walletError.classList.remove('show');
 
-  // ✅ VALIDATION
-  if (!firstName.value || !lastName.value || !email.value || !password.value || !confirmPassword.value) {
-    alert("Please fill all fields!");
-    return;
-  }
+  let hasError = false;
 
-  if (password.value !== confirmPassword.value) {
-    alert("Passwords do not match!");
-    return;
-  }
-
+  // ---------------- VALIDATION ----------------
+  if (!minLength3(firstName.value)) hasError = true;
+  if (!minLength3(lastName.value)) hasError = true;
+  if (!emailValidator(email.value)) hasError = true;
+  if (!passwordValidator(password.value)) hasError = true;
+  if (!confirmPasswordValidator(confirmPassword.value)) hasError = true;
   if (!role.value) {
-    alert("Select a role!");
-    return;
+    alert("Please select a role!");
+    hasError = true;
   }
 
+  if (hasError) return; // Stop if any field invalid
+
+  // ---------------- WALLET ----------------
   if (!window.ethereum) {
     walletError.textContent = "Install MetaMask!";
     walletError.classList.add('show');
@@ -71,7 +94,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   }
 
   let accounts;
-
   try {
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
   } catch {
@@ -80,7 +102,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     return;
   }
 
-  // ✅ WALLET CHECK
   if (!accounts.length) {
     walletError.textContent = "Connect MetaMask first!";
     walletError.classList.add('show');
@@ -88,7 +109,9 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   }
 
   const walletAddress = accounts[0];
+  walletAddressInput.value = walletAddress;
 
+  // ---------------- SUBMIT TO SERVER ----------------
   try {
     const res = await fetch('http://localhost:5000/api/register', {
       method: 'POST',
@@ -111,7 +134,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     } else {
       alert(result.message);
     }
-
   } catch (err) {
     alert("Server error. Try again later.");
   }

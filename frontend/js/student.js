@@ -41,8 +41,11 @@ async function loadAttendanceFromBlockchain() {
 
     tableBody.innerHTML += `
       <tr>
-        <td>${subject}</td>
-        <td>${percent}%</td>
+        <td>${s.name}</td>
+        <td>${s.email || "-"}</td>
+        <td>${s.branch || "-"}</td>
+        <td>${s.sem}</td>
+        <td>${s.wallet}</td>
       </tr>
     `;
 

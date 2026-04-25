@@ -78,26 +78,21 @@ let contract;
 let userAccount;
 
 // ---------------- CONNECT ----------------
-async function connectBlockchain() {
+async function connectMetaMask() {
   if (window.ethereum) {
-    try {
-      web3 = new Web3(window.ethereum);
+    web3 = new Web3(window.ethereum);
 
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-      });
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
 
-      account = accounts[0];
+    userAccount = accounts[0]; 
 
-      contract = new web3.eth.Contract(contractABI, contractAddress);
+    contract = new web3.eth.Contract(contractABI, contractAddress);
 
-      console.log("Connected:", account);
-
-    } catch (error) {
-      console.error("User denied access");
-    }
+    console.log("Connected:", userAccount);
   } else {
-    alert("Please install MetaMask");
+    alert("Install MetaMask");
   }
 }
 

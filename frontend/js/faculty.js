@@ -8,7 +8,7 @@ let attendanceData = {};
 // ---------------- INIT ----------------
 window.addEventListener("load", async () => {
   await connectMetaMask();
-  account = window.getAccount();
+  account = userAccount;
 
   if (account) {
     await loadSubjects();

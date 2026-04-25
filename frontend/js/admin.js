@@ -30,33 +30,48 @@ async function loadStudentsFromBlockchain() {
 
 // ---------------- ADD STUDENT ----------------
 async function addStudent() {
-  const name = sName.value;
-  const sem = sSem.value;
+  const name = document.getElementById("sName").value;
+  const email = document.getElementById("sEmail").value;
+  const branch = document.getElementById("sBranch").value;
+  const sem = document.getElementById("sSem").value;
 
-  const res = await fetch("http://localhost:3000/add-student", {
+  const wallet = prompt("Enter student wallet address");
+
+  if (!wallet) return alert("Wallet required");
+
+  await fetch("http://localhost:3000/add-student", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ name, sem })
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name, email, branch, sem, wallet })
   });
 
-  const data = await res.json();
-  alert(data.message);
+  await addStudentBlockchain(name, sem, wallet);
+
+  alert("Student added successfully");
+
+  loadStudentsFromBlockchain();
 }
 
 // ---------------- ADD FACULTY ----------------
 async function addFaculty() {
+  const name = document.getElementById("fName").value;
+  const email = document.getElementById("fEmail").value;
+  const branch = document.getElementById("fBranch").value;
+  const subject = document.getElementById("fSubject").value;
+
   const wallet = prompt("Enter faculty wallet");
 
   if (!wallet) return;
 
+  await fetch("http://localhost:3000/add-faculty", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name, email, branch, subject, wallet })
+  });
+
   await addFacultyBlockchain(wallet);
 
-  faculty.push({ wallet });
-
-  renderFaculty();
-  updateCounts();
+  alert("Faculty added");
 }
 
 // ---------------- DELETE STUDENT ----------------

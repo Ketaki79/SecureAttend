@@ -30,20 +30,19 @@ async function loadStudentsFromBlockchain() {
 
 // ---------------- ADD STUDENT ----------------
 async function addStudent() {
-  const name = sName.value.trim();
-  const sem = parseInt(sSem.value);
+  const name = sName.value;
+  const sem = sSem.value;
 
-  const wallet = prompt("Enter student wallet address");
+  const res = await fetch("http://localhost:3000/add-student", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name, sem })
+  });
 
-  if (!name || !sem || !wallet) {
-    return alert("Fill all fields!");
-  }
-
-  await addStudentBlockchain(name, sem, wallet);
-
-  alert("Student added!");
-
-  await loadStudentsFromBlockchain();
+  const data = await res.json();
+  alert(data.message);
 }
 
 // ---------------- ADD FACULTY ----------------

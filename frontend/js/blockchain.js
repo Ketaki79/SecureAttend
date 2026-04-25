@@ -1,7 +1,7 @@
 // ================= BLOCKCHAIN.JS =================
 
-// ⚠️ UPDATE AFTER REDEPLOYING CONTRACT
-const contractAddress = "YOUR_NEW_CONTRACT_ADDRESS";
+//  UPDATE AFTER REDEPLOYING CONTRACT
+const contractAddress = "0x8f8421e683956Ad15b6E7d301182D3D79E2A46C9";
 
 const contractABI = [
   {

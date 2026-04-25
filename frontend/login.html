@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SecureAttend Login</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
 <style>
-/* Eye button like registration page */
 .eye-btn {
   position: absolute;
   right: 0.75rem;
@@ -25,69 +26,71 @@
 }
 </style>
 </head>
+
 <body class="bg-gradient-to-br from-[#0f172a] via-[#020617] to-black min-h-screen text-white">
 
 <!-- Navbar -->
 <nav class="flex justify-between items-center px-10 py-4 border-b border-white/10">
-  <h1 class="text-2xl font-bold tracking-wider text-blue-500 cursor-pointer" onclick="location.href='index.html'">SecureAttend</h1>
+  <h1 class="text-2xl font-bold text-blue-500 cursor-pointer" onclick="location.href='index.html'">
+    SecureAttend
+  </h1>
   <div class="space-x-6 text-sm">
-    <a href="index.html" class="hover:text-blue-400 transition duration-300">Home</a>
-    <a href="register.html" class="hover:text-blue-400 transition duration-300">Register</a>
+    <a href="index.html">Home</a>
+    <a href="register.html">Register</a>
   </div>
 </nav>
 
 <!-- Title -->
 <div class="text-center mt-12">
-  <h1 class="text-4xl font-bold tracking-wide">LOGIN TO <span class="text-blue-500">ACCOUNT</span></h1>
-  <p class="text-gray-400 mt-2">Access your Admin, Faculty, or Student dashboard</p>
+  <h1 class="text-4xl font-bold">LOGIN TO <span class="text-blue-500">ACCOUNT</span></h1>
+  <p class="text-gray-400 mt-2">Admin / Faculty / Student</p>
 </div>
 
 <!-- Form -->
 <div class="flex justify-center mt-10 px-4">
-  <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10 w-full max-w-md shadow-2xl">
+  <form id="loginForm"
+    class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10 w-full max-w-md shadow-2xl">
 
     <!-- Email -->
-    <input id="email" type="email" placeholder="Enter Email"
-      class="w-full mb-5 px-4 py-3 bg-white/10 rounded-lg border border-white/20 text-white placeholder-gray-400
-      focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+    <input id="email" type="email" placeholder="Enter Email" required
+      class="w-full mb-5 px-4 py-3 bg-white/10 rounded-lg border text-white">
 
     <!-- Password -->
     <div class="relative mb-5">
-      <input id="password" type="password" placeholder="Enter Password"
-        class="w-full px-4 py-3 bg-white/10 rounded-lg border border-white/20 text-white placeholder-gray-400
-        focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+      <input id="password" type="password" placeholder="Enter Password" required
+        class="w-full px-4 py-3 bg-white/10 rounded-lg border text-white">
       <i class="far fa-eye eye-btn" id="togglePassword"></i>
     </div>
 
     <!-- Role -->
-    <select id="role" class="w-full px-4 py-2 mb-4 rounded-lg bg-white/10 border border-white/20 text-white">
-        <option value="" disabled selected>Select Role</option>
-        <option value="admin" class="text-black">👑 Admin</option>
-        <option value="faculty" class="text-black">🎓 Faculty</option>
-        <option value="student" class="text-black">📘 Student</option>
-      </select>
+    <select id="role" required
+      class="w-full px-4 py-2 mb-4 rounded-lg bg-white/10 border text-white">
+      <option value="" disabled selected>Select Role</option>
+      <option value="admin" class="text-black">Admin</option>
+      <option value="faculty" class="text-black">Faculty</option>
+      <option value="student" class="text-black">Student</option>
+    </select>
 
-    <!-- Error -->
-    <p id="error" class="text-red-500 text-sm mb-3"></p>
+    <!-- Wallet -->
+    <input id="walletAddress" type="text"
+      class="w-full px-3 py-2 mb-3 bg-white/10 rounded-lg border text-green-400"
+      value="Connecting wallet..." readonly>
 
-    <!-- Wallet Display -->
-    <div class="mb-4">
-      <input id="walletAddress" type="text"
-        class="w-full px-3 py-1.5 text-sm bg-white/10 rounded-lg border border-white/20 text-green-400"
-        value="Connecting wallet..."
-        readonly>
-    </div>
+    <!-- Errors -->
+    <p id="walletError" class="text-red-400 text-sm mb-2"></p>
+
+    <!-- Success -->
+    <p id="successPopup" class="text-green-400 text-sm mb-2 hidden">
+      Login successful!
+    </p>
 
     <!-- Button -->
-    <button onclick="login()" id="btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 transition transform shadow-lg shadow-blue-500/30 font-semibold">
+    <button type="submit"
+      class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:scale-105 transition">
       LOGIN
     </button>
 
-    <!-- Register Link -->
-    <p class="text-center text-sm mt-6 text-gray-400">
-      Don't have an account? <span class="text-blue-400 cursor-pointer hover:underline" onclick="location.href='register.html'">Register</span>
-    </p>
-  </div>
+  </form>
 </div>
 
 <script src="js/login.js"></script>

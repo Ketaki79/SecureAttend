@@ -1,13 +1,25 @@
-// ---------------- ELEMENTS ----------------
-const email = document.getElementById('email');
-const password = document.getElementById('password');
-const role = document.getElementById('role');
-const walletAddressInput = document.getElementById('walletAddress');
-const walletError = document.getElementById('walletError');
-const successPopup = document.getElementById('successPopup');
+// ---------------- WAIT FOR DOM ----------------
+window.addEventListener("DOMContentLoaded", () => {
 
-// ---------------- AUTO WALLET FOR OLD USERS ----------------
-async function connectWalletAuto() {
+  // ELEMENTS
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const role = document.getElementById('role');
+  const walletAddressInput = document.getElementById('walletAddress');
+  const walletError = document.getElementById('walletError');
+  const successPopup = document.getElementById('successPopup');
+  const togglePassword = document.getElementById('togglePassword');
+  const form = document.getElementById('loginForm');
+
+  // ---------------- PASSWORD TOGGLE ----------------
+  togglePassword.addEventListener('click', () => {
+    const type = password.type === "password" ? "text" : "password";
+    password.type = type;
+    togglePassword.classList.toggle("fa-eye-slash");
+  });
+
+  // ---------------- AUTO WALLET ----------------
+  async function connectWalletAuto() {
   if (!window.ethereum) {
     walletAddressInput.value = "MetaMask Not Installed";
     return;
@@ -16,62 +28,35 @@ async function connectWalletAuto() {
   try {
     const accounts = await ethereum.request({ method: 'eth_accounts' });
     walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
-
-    // Fetch wallet for existing email
-    if (email.value.endsWith('@gmail.com')) {
-      try {
-        const res = await fetch('http://localhost:5000/api/get-wallet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.value })
-        });
-        const data = await res.json();
-        if (data.success) {
-          walletAddressInput.value = data.walletAddress; // old user's wallet
-        }
-      } catch {}
-    }
   } catch {
     walletAddressInput.value = "Error";
   }
-}
-
-window.addEventListener("load", connectWalletAuto);
-email.addEventListener("blur", connectWalletAuto); // update wallet when email entered
-
-// ---------------- FORM SUBMIT ----------------
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  walletError.classList.remove('show');
-
-  if (!email.value || !password.value || !role.value) {
-    alert("Please fill all fields!");
-    return;
   }
+
+  window.addEventListener("load", connectWalletAuto);
+  email.addEventListener("blur", connectWalletAuto);
+
+  // ---------------- LOGIN ----------------
+  form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  walletError.textContent = "";
 
   if (!window.ethereum) {
     walletError.textContent = "Install MetaMask!";
-    walletError.classList.add('show');
     return;
   }
 
   let accounts;
+
   try {
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
   } catch {
-    walletError.textContent = "MetaMask connection rejected!";
-    walletError.classList.add('show');
-    return;
-  }
-
-  if (!accounts.length) {
-    walletError.textContent = "Connect MetaMask first!";
-    walletError.classList.add('show');
+    walletError.textContent = "Wallet connection rejected!";
     return;
   }
 
   const walletAddress = accounts[0];
-  walletAddressInput.value = walletAddress;
 
   try {
     const res = await fetch('http://localhost:5000/api/login', {
@@ -85,20 +70,41 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       })
     });
 
-    const result = await res.json();
+    const data = await res.json();
 
-    if (result.success) {
-      // Play success sound
-      const audio = new Audio('success.mp3'); // add your success.mp3 file
-      audio.play();
+    console.log("SERVER RESPONSE:", data); 
 
-      successPopup.classList.add('show');
-      setTimeout(() => window.location.href = 'dashboard.html', 2000);
-    } else {
-      alert(result.error || result.message || 'Login failed!');
+    if (!res.ok) {
+      if (data.error === "UserNotFound") {
+        walletError.textContent = "User not found";
+      } else if (data.error === "InvalidCredentials") {
+        walletError.textContent = "Wrong password";
+       } else if (data.error === "WalletMismatch") {
+        walletError.textContent = "Wrong wallet connected";
+      } else {
+        walletError.textContent = "Login failed";
+      }
+      return;
+    }
+
+    if (data.success) {
+    const role = data.user.role;
+
+    if (role === "student") {
+      window.location.href = "student.html";
+    } 
+    else if (role === "admin") {
+      window.location.href = "admin.html";
+    } 
+    else if (role === "faculty") {
+      window.location.href = "faculty.html";
+     }
     }
 
   } catch (err) {
-    alert("Server error. Try again later.");
+    console.error(err);
+    walletError.textContent = "Server error";
   }
-});
+  });
+
+}); 

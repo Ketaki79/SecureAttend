@@ -1,181 +1,157 @@
-// blockchain.js
+// ================= BLOCKCHAIN.JS =================
 
-// ------------------- CONTRACT CONFIG -------------------
-const contractAddress = "0x8f8421e683956Ad15b6E7d301182D3D79E2A46C9";
+// ⚠️ UPDATE AFTER REDEPLOYING CONTRACT
+const contractAddress = "YOUR_NEW_CONTRACT_ADDRESS";
 
 const contractABI = [
   {
-    "inputs":[{"internalType":"uint256","name":"","type":"uint256"}],
-    "name":"records",
-    "outputs":[
-      {"internalType":"address","name":"student","type":"address"},
-      {"internalType":"string","name":"subject","type":"string"},
-      {"internalType":"uint256","name":"date","type":"uint256"},
-      {"internalType":"bool","name":"present","type":"bool"}
+    "inputs": [
+      {"internalType": "string", "name": "_name", "type": "string"},
+      {"internalType": "uint256", "name": "_sem", "type": "uint256"},
+      {"internalType": "address", "name": "_wallet", "type": "address"}
     ],
-    "stateMutability":"view",
-    "type":"function",
-    "constant":true
+    "name": "addStudent",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    "inputs":[
-      {"internalType":"address","name":"_student","type":"address"},
-      {"internalType":"string","name":"_subject","type":"string"},
-      {"internalType":"bool","name":"_present","type":"bool"}
+    "inputs": [
+      {"internalType": "address", "name": "_faculty", "type": "address"}
     ],
-    "name":"markAttendance",
-    "outputs":[],
-    "stateMutability":"nonpayable",
-    "type":"function"
+    "name": "addFaculty",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    "inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"uint256","name":"_sem","type":"uint256"}],
-    "name":"addStudent",
-    "outputs":[],
-    "stateMutability":"nonpayable",
-    "type":"function"
-  },
-  {
-    "inputs":[],"name":"getStudentCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function","constant":true
-  },
-  {
-    "inputs":[{"internalType":"uint256","name":"","type":"uint256"}],
-    "name":"students",
-    "outputs":[
-      {"internalType":"string","name":"name","type":"string"},
-      {"internalType":"uint256","name":"sem","type":"uint256"},
-      {"internalType":"address","name":"studentAddress","type":"address"}
+    "inputs": [
+      {"internalType": "address", "name": "_student", "type": "address"},
+      {"internalType": "string", "name": "_subject", "type": "string"},
+      {"internalType": "bool", "name": "_present", "type": "bool"}
     ],
-    "stateMutability":"view",
-    "type":"function",
-    "constant":true
+    "name": "markAttendance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    "inputs":[],
-    "name":"getRecords",
-    "outputs":[
+    "inputs": [],
+    "name": "getStudentCount",
+    "outputs": [{"type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "index", "type": "uint256"}],
+    "name": "getStudent",
+    "outputs": [
+      {"type": "string"},
+      {"type": "uint256"},
+      {"type": "address"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getRecords",
+    "outputs": [
       {
-        "components":[
-          {"internalType":"address","name":"student","type":"address"},
-          {"internalType":"string","name":"subject","type":"string"},
-          {"internalType":"uint256","name":"date","type":"uint256"},
-          {"internalType":"bool","name":"present","type":"bool"}
+        "components": [
+          {"name": "student", "type": "address"},
+          {"name": "subject", "type": "string"},
+          {"name": "timestamp", "type": "uint256"},
+          {"name": "present", "type": "bool"}
         ],
-        "internalType":"struct Attendance.Record[]",
-        "name":"",
-        "type":"tuple[]"
+        "type": "tuple[]"
       }
     ],
-    "stateMutability":"view",
-    "type":"function",
-    "constant":true
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
-// ------------------- GLOBAL VARIABLES -------------------
+// ---------------- GLOBALS ----------------
 let web3;
 let contract;
 let userAccount;
 
-// ------------------- CONNECT METAMASK -------------------
+// ---------------- CONNECT ----------------
 async function connectMetaMask() {
   if (!window.ethereum) {
-    alert("Please install MetaMask");
+    alert("Install MetaMask");
     return;
   }
 
-  try {
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts",
-    });
+  const accounts = await ethereum.request({
+    method: "eth_requestAccounts"
+  });
 
-    userAccount = accounts[0];
+  userAccount = accounts[0];
+  web3 = new Web3(window.ethereum);
+  contract = new web3.eth.Contract(contractABI, contractAddress);
 
-    web3 = new Web3(window.ethereum);
-    contract = new web3.eth.Contract(contractABI, contractAddress);
-
-    console.log("Connected:", userAccount);
-  } catch (error) {
-    console.error("MetaMask connection failed:", error);
-  }
+  console.log("Connected:", userAccount);
 }
 
 // ---------------- ADD STUDENT ----------------
-async function addStudentBlockchain(name, sem) {
-  try {
-    return await contract.methods
-      .addStudent(name, sem)
-      .send({ from: userAccount });
-  } catch (err) {
-    console.error("Add student error:", err);
-  }
+async function addStudentBlockchain(name, sem, wallet) {
+  if (!contract) throw "Contract not loaded";
+
+  return await contract.methods
+    .addStudent(name, sem, wallet)
+    .send({ from: userAccount });
+}
+
+// ---------------- ADD FACULTY ----------------
+async function addFacultyBlockchain(wallet) {
+  return await contract.methods
+    .addFaculty(wallet)
+    .send({ from: userAccount });
 }
 
 // ---------------- MARK ATTENDANCE ----------------
 async function markAttendanceBlockchain(student, subject, present) {
-  try {
-    return await contract.methods
-      .markAttendance(student, subject, present)
-      .send({ from: userAccount });
-  } catch (err) {
-    console.error("Attendance error:", err);
-  }
+  return await contract.methods
+    .markAttendance(student, subject, present)
+    .send({ from: userAccount });
 }
 
 // ---------------- GET STUDENTS ----------------
 async function getStudentsBlockchain() {
-  try {
-    const count = await contract.methods.getStudentCount().call();
-    let list = [];
+  const count = await contract.methods.getStudentCount().call();
+  let list = [];
 
-    for (let i = 0; i < count; i++) {
-      const s = await contract.methods.students(i).call(); // ✅ FIXED
+  for (let i = 0; i < count; i++) {
+    const s = await contract.methods.getStudent(i).call();
 
-      list.push({
-        name: s.name,
-        sem: s.sem,
-        wallet: s.studentAddress,
-      });
-    }
-
-    return list;
-  } catch (err) {
-    console.error("Get students error:", err);
+    list.push({
+      name: s[0],
+      sem: s[1],
+      wallet: s[2]
+    });
   }
+
+  return list;
 }
 
 // ---------------- GET RECORDS ----------------
 async function getAttendanceRecords() {
-  try {
-    const records = await contract.methods.getRecords().call();
+  const records = await contract.methods.getRecords().call();
 
-    return records.map((r) => ({
-      student: r.student,
-      subject: r.subject,
-      date: new Date(r.date * 1000).toLocaleString(), // ✅ FIXED
-      present: r.present,
-    }));
-  } catch (err) {
-    console.error("Get records error:", err);
-  }
+  return records.map(r => ({
+    student: r.student,
+    subject: r.subject,
+    date: new Date(r.timestamp * 1000).toLocaleString(),
+    present: r.present
+  }));
 }
 
-// ------------------- HELPER FUNCTIONS -------------------
-function getContract() {
-  if (!contract) throw new Error("Blockchain not connected");
-  return contract;
-}
-
-function getUserAccount() {
-  if (!userAccount) throw new Error("MetaMask not connected");
-  return userAccount;
-}
-
-// ------------------- GLOBAL ACCESS -------------------
+// ---------------- EXPORT ----------------
 window.connectMetaMask = connectMetaMask;
 window.addStudentBlockchain = addStudentBlockchain;
+window.addFacultyBlockchain = addFacultyBlockchain;
 window.markAttendanceBlockchain = markAttendanceBlockchain;
 window.getStudentsBlockchain = getStudentsBlockchain;
 window.getAttendanceRecords = getAttendanceRecords;
-window.getContract = () => contract;
-window.getAccount = () => userAccount;

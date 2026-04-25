@@ -66,31 +66,40 @@ router.post('/login', async (req, res) => {
   const { email, password, role, walletAddress } = req.body;
 
   try {
-    const [users] = await db.query('SELECT * FROM users WHERE email = ? AND role = ?', [email, role]);
-    if (users.length === 0) return res.status(404).json({ error: 'UserNotFound' });
+    const [users] = await db.query(
+      'SELECT * FROM users WHERE email = ? AND role = ?',
+      [email, role]
+    );
+
+    if (users.length === 0)
+      return res.status(404).json({ error: 'UserNotFound' });
 
     const user = users[0];
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ error: 'InvalidCredentials' });
+    if (!isMatch)
+      return res.status(401).json({ error: 'InvalidCredentials' });
 
-    // Check wallet matches stored wallet
-    if (user.wallet_address !== walletAddress) return res.status(401).json({ error: 'WalletMismatch' });
+    console.log("DB Wallet:", user.wallet_address);
+    console.log("MetaMask Wallet:", walletAddress);
+
+    if (user.wallet_address.toLowerCase() !== walletAddress.toLowerCase()) {
+      return res.status(401).json({ error: 'WalletMismatch' });
+    }
 
     res.json({
-      success: true,
-      user: {
-        id: user.id,
-        name: user.first_name,
-        email: user.email,
-        role: user.role,
-        walletAddress: user.wallet_address
-      }
+    success: true,
+    user: {
+    id: user.id,
+    name: user.first_name,
+    email: user.email,
+    role: user.role, 
+    walletAddress: user.wallet_address
+    }
     });
 
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ message: err.message });
   }
 });
 

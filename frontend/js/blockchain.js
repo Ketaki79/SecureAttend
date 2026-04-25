@@ -1,8 +1,6 @@
-// ================= blockchain.js =================
-let web3;
-let contract;
-let account;
+// blockchain.js
 
+// ------------------- CONTRACT CONFIG -------------------
 const contractAddress = "0x8f8421e683956Ad15b6E7d301182D3D79E2A46C9";
 
 const contractABI = [
@@ -31,6 +29,28 @@ const contractABI = [
     "type":"function"
   },
   {
+    "inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"uint256","name":"_sem","type":"uint256"}],
+    "name":"addStudent",
+    "outputs":[],
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "inputs":[],"name":"getStudentCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function","constant":true
+  },
+  {
+    "inputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+    "name":"students",
+    "outputs":[
+      {"internalType":"string","name":"name","type":"string"},
+      {"internalType":"uint256","name":"sem","type":"uint256"},
+      {"internalType":"address","name":"studentAddress","type":"address"}
+    ],
+    "stateMutability":"view",
+    "type":"function",
+    "constant":true
+  },
+  {
     "inputs":[],
     "name":"getRecords",
     "outputs":[
@@ -52,84 +72,110 @@ const contractABI = [
   }
 ];
 
+// ------------------- GLOBAL VARIABLES -------------------
+let web3;
+let contract;
+let userAccount;
+
 // ------------------- CONNECT METAMASK -------------------
-export async function connectMetaMask() {
-  if (!window.ethereum) throw new Error("MetaMask not installed!");
-  
+async function connectMetaMask() {
+  if (!window.ethereum) {
+    alert("Please install MetaMask");
+    return;
+  }
+
   try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
+
     userAccount = accounts[0];
+
     web3 = new Web3(window.ethereum);
     contract = new web3.eth.Contract(contractABI, contractAddress);
 
-    console.log("MetaMask connected:", userAccount);
-    return userAccount;
-  } catch (err) {
-    console.error("MetaMask connection error:", err);
-    throw err;
+    console.log("Connected:", userAccount);
+  } catch (error) {
+    console.error("MetaMask connection failed:", error);
   }
 }
 
-// ------------------- GET STUDENTS -------------------
-export async function getStudents() {
-  if (!contract) throw new Error("Blockchain not connected");
+// ---------------- ADD STUDENT ----------------
+async function addStudentBlockchain(name, sem) {
+  try {
+    return await contract.methods
+      .addStudent(name, sem)
+      .send({ from: userAccount });
+  } catch (err) {
+    console.error("Add student error:", err);
+  }
+}
 
+// ---------------- MARK ATTENDANCE ----------------
+async function markAttendanceBlockchain(student, subject, present) {
+  try {
+    return await contract.methods
+      .markAttendance(student, subject, present)
+      .send({ from: userAccount });
+  } catch (err) {
+    console.error("Attendance error:", err);
+  }
+}
+
+// ---------------- GET STUDENTS ----------------
+async function getStudentsBlockchain() {
   try {
     const count = await contract.methods.getStudentCount().call();
-    const students = [];
+    let list = [];
 
     for (let i = 0; i < count; i++) {
-      const s = await contract.methods.students(i).call();
-      students.push({ name: s.name, sem: s.sem, email: "", branch: "" });
+      const s = await contract.methods.students(i).call(); // ✅ FIXED
+
+      list.push({
+        name: s.name,
+        sem: s.sem,
+        wallet: s.studentAddress,
+      });
     }
-    return students;
+
+    return list;
   } catch (err) {
-    console.error("Failed to get students:", err);
-    throw err;
+    console.error("Get students error:", err);
   }
 }
 
-// ------------------- ADD STUDENT -------------------
-export async function addStudent(name, sem, account) {
-  if (!contract) throw new Error("Blockchain not connected");
-
+// ---------------- GET RECORDS ----------------
+async function getAttendanceRecords() {
   try {
-    await contract.methods.addStudent(name, sem).send({ from: account });
-    console.log("Student added on blockchain:", name);
+    const records = await contract.methods.getRecords().call();
+
+    return records.map((r) => ({
+      student: r.student,
+      subject: r.subject,
+      date: new Date(r.date * 1000).toLocaleString(), // ✅ FIXED
+      present: r.present,
+    }));
   } catch (err) {
-    console.error("Failed to add student:", err);
-    throw err;
+    console.error("Get records error:", err);
   }
 }
 
-// ------------------- GET ATTENDANCE -------------------
-export async function getAttendance(subject) {
+// ------------------- HELPER FUNCTIONS -------------------
+function getContract() {
   if (!contract) throw new Error("Blockchain not connected");
-
-  const attendance = {};
-  try {
-    const studentCount = await contract.methods.getStudentCount().call();
-    for (let i = 0; i < studentCount; i++) {
-      const student = await contract.methods.students(i).call();
-      const status = await contract.methods.getAttendance(student.name, subject).call();
-      attendance[student.name] = status ? "present" : "absent";
-    }
-    return attendance;
-  } catch (err) {
-    console.error("Failed to get attendance:", err);
-    throw err;
-  }
+  return contract;
 }
 
-// ------------------- MARK ATTENDANCE -------------------
-export async function markAttendance(name, subject, isPresent, account) {
-  if (!contract) throw new Error("Blockchain not connected");
-
-  try {
-    await contract.methods.markAttendance(name, subject, isPresent).send({ from: account });
-    console.log(`Attendance marked for ${name} (${subject}): ${isPresent ? 'Present' : 'Absent'}`);
-  } catch (err) {
-    console.error("Failed to mark attendance:", err);
-    throw err;
-  }
+function getUserAccount() {
+  if (!userAccount) throw new Error("MetaMask not connected");
+  return userAccount;
 }
+
+// ------------------- GLOBAL ACCESS -------------------
+window.connectMetaMask = connectMetaMask;
+window.addStudentBlockchain = addStudentBlockchain;
+window.markAttendanceBlockchain = markAttendanceBlockchain;
+window.getStudentsBlockchain = getStudentsBlockchain;
+window.getAttendanceRecords = getAttendanceRecords;
+window.getContract = () => contract;
+window.getAccount = () => userAccount;

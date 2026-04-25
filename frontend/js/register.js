@@ -22,23 +22,6 @@ function toggleEye(input, icon){
 togglePassword.addEventListener('click', ()=>toggleEye(password, togglePassword));
 toggleConfirmPassword.addEventListener('click', ()=>toggleEye(confirmPassword, toggleConfirmPassword));
 
-// ---------------- AUTO WALLET ----------------
-async function connectWalletAuto() {
-  if (!window.ethereum) {
-    walletAddressInput.value = "MetaMask Not Installed";
-    return;
-  }
-
-  try {
-    const accounts = await ethereum.request({ method: 'eth_accounts' });
-    walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
-  } catch {
-    walletAddressInput.value = "Error";
-  }
-}
-
-window.addEventListener("load", connectWalletAuto);
-
 // ---------------- DYNAMIC VALIDATION ----------------
 function validateField(input, errorId, validator) {
   const errorEl = document.getElementById(errorId);
@@ -64,46 +47,51 @@ validateField(email, 'emailError', emailValidator);
 validateField(password, 'passwordError', passwordValidator);
 validateField(confirmPassword, 'confirmPasswordError', confirmPasswordValidator);
 
+// ---------------- AUTO WALLET ----------------
+async function connectWalletAuto() {
+  if (!window.ethereum) {
+    walletAddressInput.value = "MetaMask Not Installed";
+    return;
+  }
+  try {
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
+  } catch {
+    walletAddressInput.value = "Error";
+  }
+}
+window.addEventListener("load", connectWalletAuto);
+
 // ---------------- FORM SUBMIT ----------------
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-
-  // Clear wallet error
   walletError.classList.remove('show');
 
-  let hasError = false;
-
-  // ---------------- VALIDATION ----------------
-  if (!minLength3(firstName.value)) hasError = true;
-  if (!minLength3(lastName.value)) hasError = true;
-  if (!emailValidator(email.value)) hasError = true;
-  if (!passwordValidator(password.value)) hasError = true;
-  if (!confirmPasswordValidator(confirmPassword.value)) hasError = true;
+  // Basic validation
+  if (!firstName.value || !lastName.value || !email.value || !password.value || !confirmPassword.value) {
+    alert("Please fill all fields!");
+    return;
+  }
+  if (password.value !== confirmPassword.value) {
+    alert("Passwords do not match!");
+    return;
+  }
   if (!role.value) {
-    alert("Please select a role!");
-    hasError = true;
+    alert("Select a role!");
+    return;
   }
 
-  if (hasError) return; // Stop if any field invalid
-
-  // ---------------- WALLET ----------------
+  // MetaMask connect (popup)
   if (!window.ethereum) {
     walletError.textContent = "Install MetaMask!";
     walletError.classList.add('show');
     return;
   }
-
   let accounts;
   try {
-    accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    accounts = await ethereum.request({ method: 'eth_requestAccounts' }); // popup
   } catch {
     walletError.textContent = "MetaMask connection rejected!";
-    walletError.classList.add('show');
-    return;
-  }
-
-  if (!accounts.length) {
-    walletError.textContent = "Connect MetaMask first!";
     walletError.classList.add('show');
     return;
   }
@@ -111,7 +99,27 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const walletAddress = accounts[0];
   walletAddressInput.value = walletAddress;
 
-  // ---------------- SUBMIT TO SERVER ----------------
+  // Check wallet for new users
+  try {
+    const resCheck = await fetch('http://localhost:5000/api/check-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ walletAddress })
+    });
+    const checkResult = await resCheck.json();
+
+    if (checkResult.exists) {
+      walletError.textContent = "This wallet is already registered! Use a new wallet.";
+      walletError.classList.add('show');
+      return;
+    }
+  } catch {
+    walletError.textContent = "Server error while checking wallet!";
+    walletError.classList.add('show');
+    return;
+  }
+
+  // Submit registration
   try {
     const res = await fetch('http://localhost:5000/api/register', {
       method: 'POST',
@@ -127,14 +135,15 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     });
 
     const result = await res.json();
-
     if (result.success) {
       successPopup.classList.add('show');
+      // Optional: play popup sound
+      new Audio('success.mp3').play();
       setTimeout(() => window.location.href = 'login.html', 2000);
     } else {
       alert(result.message);
     }
-  } catch (err) {
+  } catch {
     alert("Server error. Try again later.");
   }
 });

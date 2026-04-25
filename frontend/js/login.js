@@ -2,20 +2,11 @@
 const email = document.getElementById('email');
 const password = document.getElementById('password');
 const role = document.getElementById('role');
-
 const walletAddressInput = document.getElementById('walletAddress');
-const error = document.getElementById('error');
-const togglePassword = document.getElementById('togglePassword');
+const walletError = document.getElementById('walletError');
+const successPopup = document.getElementById('successPopup');
 
-
-// ---------------- EYE TOGGLE ----------------
-togglePassword.addEventListener('click', () => {
-  password.type = password.type === 'password' ? 'text' : 'password';
-  togglePassword.classList.toggle('fa-eye-slash');
-});
-
-
-// ---------------- AUTO WALLET ----------------
+// ---------------- AUTO WALLET FOR OLD USERS ----------------
 async function connectWalletAuto() {
   if (!window.ethereum) {
     walletAddressInput.value = "MetaMask Not Installed";
@@ -25,44 +16,62 @@ async function connectWalletAuto() {
   try {
     const accounts = await ethereum.request({ method: 'eth_accounts' });
     walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
+
+    // Fetch wallet for existing email
+    if (email.value.endsWith('@gmail.com')) {
+      try {
+        const res = await fetch('http://localhost:5000/api/get-wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.value })
+        });
+        const data = await res.json();
+        if (data.success) {
+          walletAddressInput.value = data.walletAddress; // old user's wallet
+        }
+      } catch {}
+    }
   } catch {
     walletAddressInput.value = "Error";
   }
 }
 
 window.addEventListener("load", connectWalletAuto);
+email.addEventListener("blur", connectWalletAuto); // update wallet when email entered
 
+// ---------------- FORM SUBMIT ----------------
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  walletError.classList.remove('show');
 
-// ---------------- LOGIN ----------------
-async function login() {
-  error.textContent = '';
-
-  // ✅ VALIDATION
   if (!email.value || !password.value || !role.value) {
-    error.textContent = "Fill all fields!";
+    alert("Please fill all fields!");
     return;
   }
 
   if (!window.ethereum) {
-    error.textContent = "Install MetaMask!";
+    walletError.textContent = "Install MetaMask!";
+    walletError.classList.add('show');
     return;
   }
 
   let accounts;
-
   try {
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
   } catch {
-    error.textContent = "Connect MetaMask!";
+    walletError.textContent = "MetaMask connection rejected!";
+    walletError.classList.add('show');
     return;
   }
 
   if (!accounts.length) {
-    error.textContent = "Wallet not connected!";
+    walletError.textContent = "Connect MetaMask first!";
+    walletError.classList.add('show');
     return;
   }
 
   const walletAddress = accounts[0];
+  walletAddressInput.value = walletAddress;
 
   try {
     const res = await fetch('http://localhost:5000/api/login', {
@@ -76,24 +85,20 @@ async function login() {
       })
     });
 
-    const data = await res.json();
+    const result = await res.json();
 
-    if (!res.ok) {
-      error.textContent =
-        data.error === 'UserNotFound' ? 'Register first' :
-        data.error === 'InvalidCredentials' ? 'Wrong email/password' :
-        data.error === 'WalletMismatch' ? 'Wrong MetaMask account' :
-        'Error occurred';
-      return;
+    if (result.success) {
+      // Play success sound
+      const audio = new Audio('success.mp3'); // add your success.mp3 file
+      audio.play();
+
+      successPopup.classList.add('show');
+      setTimeout(() => window.location.href = 'dashboard.html', 2000);
+    } else {
+      alert(result.error || result.message || 'Login failed!');
     }
 
-    localStorage.setItem("wallet", walletAddress);
-
-    if (role.value === 'admin') window.location.href = 'admin.html';
-    else if (role.value === 'faculty') window.location.href = 'faculty.html';
-    else window.location.href = 'student.html';
-
-  } catch {
-    error.textContent = "Server error!";
+  } catch (err) {
+    alert("Server error. Try again later.");
   }
-}
+});

@@ -3,53 +3,84 @@ pragma solidity ^0.8.0;
 
 contract Attendance {
 
-    // -------------------- STRUCTS --------------------
+    address public admin;
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    // ---------------- STUDENT ----------------
+    struct Student {
+        string name;
+        uint sem;
+        address wallet;
+    }
+
+    Student[] public students;
+
+    // ---------------- FACULTY ----------------
+    mapping(address => bool) public faculty;
+
+    // ---------------- ATTENDANCE ----------------
     struct Record {
         address student;
         string subject;
-        uint date;
+        uint timestamp;
         bool present;
     }
 
-    // -------------------- STATE --------------------
-    Record[] private records;
-    mapping(address => bool) public faculty; // Only faculty can mark attendance
+    Record[] public records;
 
-    // -------------------- EVENTS --------------------
-    event AttendanceMarked(address indexed student, string subject, uint date, bool present);
-
-    // -------------------- MODIFIERS --------------------
-    modifier onlyFaculty() {
-        require(faculty[msg.sender], "Only faculty can mark attendance");
+    // ---------------- MODIFIERS ----------------
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin");
         _;
     }
 
-    // -------------------- FUNCTIONS --------------------
-    // Admin adds a faculty member
-    function addFaculty(address _faculty) public {
-        // For simplicity, first deployer can add faculty
-        require(!faculty[_faculty], "Already a faculty");
+    modifier onlyFaculty() {
+        require(faculty[msg.sender], "Only faculty");
+        _;
+    }
+
+    // ---------------- ADMIN ----------------
+    function addStudent(
+        string memory _name,
+        uint _sem,
+        address _wallet
+    ) public onlyAdmin {
+        students.push(Student(_name, _sem, _wallet));
+    }
+
+    function addFaculty(address _faculty) public onlyAdmin {
         faculty[_faculty] = true;
     }
 
-    // Mark attendance (only faculty)
-    function markAttendance(address _student, string memory _subject, bool _present) public onlyFaculty {
-        records.push(Record(_student, _subject, block.timestamp, _present));
-        emit AttendanceMarked(_student, _subject, block.timestamp, _present);
+    // ---------------- ATTENDANCE ----------------
+    function markAttendance(
+        address _student,
+        string memory _subject,
+        bool _present
+    ) public onlyFaculty {
+        records.push(
+            Record(_student, _subject, block.timestamp, _present)
+        );
     }
 
-    // Get total records (for small testing)
-    function getAllRecords() public view returns (Record[] memory) {
+    // ---------------- GETTERS ----------------
+    function getStudentCount() public view returns (uint) {
+        return students.length;
+    }
+
+    function getStudent(uint index) public view returns (
+        string memory,
+        uint,
+        address
+    ) {
+        Student memory s = students[index];
+        return (s.name, s.sem, s.wallet);
+    }
+
+    function getRecords() public view returns (Record[] memory) {
         return records;
-    }
-
-    // Get records by student (filter off-chain)
-    function getRecordCount() public view returns (uint) {
-        return records.length;
-    }
-
-    function getRecord(uint index) public view returns (address student, string memory subject, uint date, bool present) {
-        Record memory r = records[index];
-        return (r.student, r.subject, r.date, r.present);
     }
 }

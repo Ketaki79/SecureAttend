@@ -1,16 +1,15 @@
 // faculty.js
 
-import { connectWallet, contract, account } from "./blockchain.js";
-
+let account;
 let subjects = [];        // Faculty subjects from DB
 let students = [];        // Students of selected subject
 let attendanceData = {};  // { studentId: "present"/"absent" }
 
 // ------------------- INITIAL LOAD -------------------
 window.addEventListener("load", async () => {
-  const connected = await connectWallet();
-  if (connected) {
-    await loadSubjects(); // Load faculty subjects from DB
+  account = await connectMetaMask();
+  if (account) {
+    await loadSubjects();
   }
 });
 
@@ -71,21 +70,19 @@ function setAttendance(studentId, status) {
 
 // ------------------- SUBMIT ATTENDANCE -------------------
 async function submitAttendance() {
-  const subjectId = document.getElementById("subject").value;
-  if (!subjectId) return alert("Select a subject!");
+  const subjectName = document.getElementById("subject").selectedOptions[0].text;
 
-  for (const studentId in attendanceData) {
-    const status = attendanceData[studentId] === "present";
-    try {
-      // Call blockchain function
-      await contract.methods.markAttendance(studentId, subjectId, status).send({ from: account });
-    } catch (err) {
-      console.error(err);
-      alert("Error submitting attendance!");
-      return;
-    }
+  for (const student of students) {
+    const status = attendanceData[student.id] === "present";
+
+    await markAttendanceBlockchain(
+      student.walletAddress,
+      subjectName,
+      status
+    );
   }
-  alert("Attendance submitted successfully!");
+
+  alert("Attendance submitted!");
 }
 
 // ------------------- LOAD REPORT -------------------

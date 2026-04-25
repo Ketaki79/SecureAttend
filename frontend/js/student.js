@@ -1,15 +1,14 @@
 // student.js
 
-import { connectWallet, contract, account } from "./blockchain.js";
+let account;
 
 let subjects = [];        // Subjects for this student
 let attendanceRecords = []; // {subjectId, subjectName, present, total}
 
 // ------------------- INITIAL LOAD -------------------
 window.addEventListener("load", async () => {
-  const connected = await connectWallet();
-  if (connected) {
-    await loadSubjects();
+  account = await connectMetaMask();
+  if (account) {
     await loadAttendance();
   }
 });

@@ -26,7 +26,7 @@ const facultyTable = document.getElementById("facultyTable");
 const subjectTable = document.getElementById("subjectTable");
 
 // ------------------- ADD STUDENT -------------------
-function addStudent() {
+async function addStudent() {
   const name = sName.value.trim();
   const email = sEmail.value.trim();
   const branch = sBranch.value.trim();
@@ -34,7 +34,9 @@ function addStudent() {
 
   if (!name || !email || !branch || !sem) return alert("Please fill all fields!");
 
-  students.push({ name, email, branch, sem });
+  const wallet = prompt("Enter student wallet address:");
+  await addStudentBlockchain(name, sem, wallet);
+  alert("Student added to blockchain");
 
   sName.value = sEmail.value = sBranch.value = sSem.value = "";
 

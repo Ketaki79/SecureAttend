@@ -1,14 +1,20 @@
 const API = "http://localhost:5000/api/admin";
 
-// ---------------- LOAD ----------------
+// ================= INIT =================
 window.addEventListener("load", () => {
-  loadStudents();
-  loadFaculty();
+  refreshAll();
 });
 
-// ================= STUDENTS =================
+// 🔁 MASTER REFRESH (IMPORTANT)
+async function refreshAll() {
+  await Promise.all([
+    loadStudents(),
+    loadFaculty(),
+    loadSubjects()
+  ]);
+}
 
-// LOAD STUDENTS
+// ================= STUDENTS =================
 async function loadStudents() {
   try {
     const res = await fetch(`${API}/students`);
@@ -21,267 +27,172 @@ async function loadStudents() {
 
     data.forEach(s => {
       table.innerHTML += `
-        <tr>
-          <td>${s.first_name} ${s.last_name || ""}</td>
-          <td>${s.email}</td>
-          <td>${s.branch || "-"}</td>
-          <td>${s.semester || "-"}</td>
-          <td>
-            <button onclick="deleteStudent(${s.id})" style="color:red">Delete</button>
-          </td>
+        <tr class="hover:bg-white/5">
+          <td class="p-3">${s.first_name} ${s.last_name || ""}</td>
+          <td class="p-3">${s.email}</td>
+          <td class="p-3">${s.branch || "-"}</td>
+          <td class="p-3">${s.semester || "-"}</td>
+          <td class="p-3 text-red-400 cursor-pointer" onclick="deleteStudent(${s.id})">Delete</td>
         </tr>
       `;
     });
 
   } catch (err) {
-    console.error("Load students error:", err);
+    console.error("Students error:", err);
   }
 }
 
-// ADD STUDENT
 async function addStudent() {
   const payload = {
-    first_name: document.getElementById("sFirstName").value.trim(),
-    last_name: document.getElementById("sLastName").value.trim(),
-    email: document.getElementById("sEmail").value.trim(),
-    branch: document.getElementById("sBranch").value.trim(),
-    semester: document.getElementById("sSem").value.trim()
+    first_name: sFirstName.value.trim(),
+    last_name: sLastName.value.trim(),
+    email: sEmail.value.trim(),
+    branch: sBranch.value.trim(),
+    semester: sSem.value.trim()
   };
 
-  // ✅ VALIDATION
   if (!payload.first_name || !payload.email) {
-    alert("Fill required fields");
+    alert("Required fields missing");
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/students`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  await fetch(`${API}/students`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to add student");
-    }
-
-    loadStudents();
-
-  } catch (err) {
-    console.error("Add student error:", err);
-    alert(err.message);
-  }
+  await refreshAll();
 }
 
-// DELETE STUDENT
 async function deleteStudent(id) {
-  if (!confirm("Delete this student?")) return;
-
-  try {
-    const res = await fetch(`${API}/students/${id}`, {
-      method: "DELETE"
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Delete failed");
-    }
-
-    loadStudents();
-
-  } catch (err) {
-    console.error("Delete student error:", err);
-  }
+  await fetch(`${API}/students/${id}`, { method: "DELETE" });
+  await refreshAll();
 }
 
 // ================= FACULTY =================
-
-// LOAD FACULTY
 async function loadFaculty() {
   try {
     const res = await fetch(`${API}/faculty`);
     const data = await res.json();
 
-    document.getElementById("facultyCount").innerText = data.length;
+    const facultyList = Array.isArray(data) ? data : [];
+
+    document.getElementById("facultyCount").innerText = facultyList.length;
 
     const table = document.getElementById("facultyTable");
     table.innerHTML = "";
 
-    data.forEach(f => {
+    facultyList.forEach(f => {
       table.innerHTML += `
-        <tr>
-          <td>${f.first_name} ${f.last_name || ""}</td>
-          <td>${f.email}</td>
-          <td>${f.branch || "-"}</td>
-          <td>${f.subject || "-"}</td>
-          <td>
-            <button onclick="deleteFaculty(${f.id})" style="color:red">Delete</button>
-          </td>
+        <tr class="hover:bg-white/5">
+          <td class="p-3">${f.first_name} ${f.last_name || ""}</td>
+          <td class="p-3">${f.email}</td>
+          <td class="p-3">${f.branch || "-"}</td>
+          <td class="p-3">${f.subject || "-"}</td>
+          <td class="p-3 text-red-400 cursor-pointer" onclick="deleteFaculty(${f.id})">Delete</td>
         </tr>
       `;
     });
 
   } catch (err) {
-    console.error("Load faculty error:", err);
+    console.error("Faculty error:", err);
   }
 }
 
-// ADD FACULTY
 async function addFaculty() {
   const payload = {
-    first_name: document.getElementById("fFirstName").value.trim(),
-    last_name: document.getElementById("fLastName").value.trim(),
-    email: document.getElementById("fEmail").value.trim(),
-    branch: document.getElementById("fBranch").value.trim(),
-    subject: document.getElementById("fSubject").value.trim()
+    first_name: fFirstName.value.trim(),
+    last_name: fLastName.value.trim(),
+    email: fEmail.value.trim(),
+    branch: fBranch.value.trim(),
+    subject: fSubject.value.trim()
   };
 
-  // ✅ VALIDATION
   if (!payload.first_name || !payload.email || !payload.subject) {
-    alert("Fill required fields");
+    alert("Required fields missing");
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/faculty`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  const res = await fetch(`${API}/faculty`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to add faculty");
-    }
-
-    loadFaculty();
-
-  } catch (err) {
-    console.error("Add faculty error:", err);
-    alert(err.message);
+  if (!res.ok) {
+    alert(data.message || "Faculty add failed");
+    return;
   }
+
+  await refreshAll(); 
 }
 
-// DELETE FACULTY
 async function deleteFaculty(id) {
-  if (!confirm("Delete this faculty?")) return;
-
-  try {
-    const res = await fetch(`${API}/faculty/${id}`, {
-      method: "DELETE"
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Delete failed");
-    }
-
-    loadFaculty();
-
-  } catch (err) {
-    console.error("Delete faculty error:", err);
-  }
+  await fetch(`${API}/faculty/${id}`, { method: "DELETE" });
+  await refreshAll();
 }
 
 // ================= SUBJECTS =================
+async function loadSubjects() {
+  try {
+    const res = await fetch(`${API}/subjects`);
+    const data = await res.json();
 
-const subName = document.getElementById("subName");
-const subCode = document.getElementById("subCode");
-const subFaculty = document.getElementById("subFaculty");
-const subjectTable = document.getElementById("subjectTable");
+    const subjects = Array.isArray(data) ? data : [];
 
-// ================= ADD SUBJECT =================
+    document.getElementById("subjectCount").innerText = subjects.length;
+
+    const table = document.getElementById("subjectTable");
+    table.innerHTML = "";
+
+    subjects.forEach(sub => {
+      table.innerHTML += `
+        <tr class="hover:bg-white/5">
+          <td class="p-3">${sub.name || "-"}</td>
+          <td class="p-3">${sub.code || "-"}</td>
+          <td class="p-3">${sub.faculty_name || "-"}</td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Subjects error:", err);
+  }
+}
+
 async function addSubject() {
-  const name = subName.value;
-  const code = subCode.value;
-  const faculty_id = subFaculty.value;
+  const payload = {
+    name: subName.value,
+    code: subCode.value,
+    faculty_id: subFaculty.value
+  };
 
-  if (!name || !code || !faculty_id) {
+  if (!payload.name || !payload.code || !payload.faculty_id) {
     alert("Fill all fields");
     return;
   }
 
-  try {
-    const res = await fetch("/api/admin/add-subject", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ name, code, faculty_id })
-    });
-
-    const data = await res.json();
-    alert(data.message);
-
-    loadSubjects();
-
-  } catch (err) {
-    console.error(err);
-    alert("Error adding subject");
-  }
-}
-
-// ================= LOAD SUBJECTS =================
-async function loadSubjects() {
-  try {
-    const res = await fetch("/api/admin/subjects");
-    const data = await res.json();
-
-    subjectTable.innerHTML = "";
-
-    data.forEach(sub => {
-      subjectTable.innerHTML += `
-        <tr>
-          <td>${sub.id}</td>
-          <td>${sub.name}</td>
-          <td>${sub.code}</td>
-          <td>${sub.faculty_name}</td>
-          <td>
-            <button onclick="deleteSubject(${sub.id})">Delete</button>
-          </td>
-        </tr>
-      `;
-    });
-
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-// ================= DELETE =================
-async function deleteSubject(id) {
-  if (!confirm("Delete subject?")) return;
-
-  await fetch(`/api/admin/subject/${id}`, {
-    method: "DELETE"
+  await fetch(`${API}/add-subject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
 
-  loadSubjects();
+  await refreshAll();
 }
 
-// Load on page start
-loadSubjects();
-
-// ================= WALLET =================
-async function getWallet() {
-  if (window.ethereum) {
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts"
-    });
-    return accounts[0];
-  } else {
-    alert("Install MetaMask");
-    return "";
-  }
+async function deleteSubject(id) {
+  await fetch(`${API}/subject/${id}`, { method: "DELETE" });
+  await refreshAll();
 }
 
-// expose globally
+// ================= EXPORT =================
 window.addStudent = addStudent;
 window.addFaculty = addFaculty;
+window.addSubject = addSubject;
 window.deleteStudent = deleteStudent;
 window.deleteFaculty = deleteFaculty;
+window.deleteSubject = deleteSubject;

@@ -106,42 +106,88 @@
 
 <!-- ================= STUDENTS ================= -->
 <div id="students" class="hidden">
-  <h2 class="text-2xl mb-4">Students</h2>
 
-  <table class="w-full bg-white/10 rounded-xl">
-    <thead>
-      <tr>
-        <th>Name</th><th>Email</th><th>Branch</th><th>Sem</th><th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="studentTable"></tbody>
-  </table>
+  <h2 class="text-2xl font-bold mb-6 text-blue-400">Students</h2>
+
+  <div class="bg-white/10 backdrop-blur-lg rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+
+    <table class="w-full text-left">
+
+      <thead class="bg-white/10 text-gray-300 uppercase text-sm">
+        <tr>
+          <th class="p-4">Name</th>
+          <th class="p-4">Email</th>
+          <th class="p-4">Branch</th>
+          <th class="p-4">Sem</th>
+          <th class="p-4">Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="studentTable" class="divide-y divide-white/10">
+        <!-- rows injected here -->
+      </tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
 <!-- ================= FACULTY ================= -->
+<!-- ================= FACULTY ================= -->
 <div id="faculty" class="hidden">
-  <h2 class="text-2xl mb-4">Faculty</h2>
 
-  <table class="w-full bg-white/10 rounded-xl">
-    <thead>
-      <tr>
-        <th>Name</th><th>Email</th><th>Branch</th><th>Subject</th><th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="facultyTable"></tbody>
-  </table>
+  <h2 class="text-2xl font-bold mb-6 text-green-400">Faculty</h2>
+
+  <div class="bg-white/10 backdrop-blur-lg rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+
+    <table class="w-full text-left">
+
+      <thead class="bg-white/10 text-gray-300 uppercase text-sm">
+        <tr>
+          <th class="p-4">Name</th>
+          <th class="p-4">Email</th>
+          <th class="p-4">Branch</th>
+          <th class="p-4">Subject</th>
+          <th class="p-4">Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="facultyTable" class="divide-y divide-white/10">
+        <!-- rows injected here -->
+      </tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
 <!-- ================= SUBJECTS ================= -->
 <div id="subjects" class="hidden">
-  <h2 class="text-2xl mb-4">Subjects</h2>
 
-  <table class="w-full bg-white/10 rounded-xl">
-    <thead>
-      <tr><th>Semester</th><th>Subject</th></tr>
-    </thead>
-    <tbody id="subjectTable"></tbody>
-  </table>
+  <h2 class="text-2xl font-bold mb-6 text-purple-400">Subjects</h2>
+
+  <div class="bg-white/10 backdrop-blur-lg rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+
+    <table class="w-full text-left">
+
+      <thead class="bg-white/10 text-gray-300 uppercase text-sm">
+        <tr>
+          <th class="p-4">Subject</th>
+          <th class="p-4">Code</th>
+          <th class="p-4">Faculty</th>
+        </tr>
+      </thead>
+
+      <tbody id="subjectTable" class="divide-y divide-white/10">
+        <!-- dynamic rows -->
+      </tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
 </main>

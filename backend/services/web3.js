@@ -5,10 +5,10 @@ const { Web3 } = require("web3");
 const web3 = new Web3("http://127.0.0.1:7545");
 
 //  CONTRACT JSON (make sure path is correct)
-const contractJSON = require("../../blockchain/build/contracts/Attendance.json");
+const contractJSON = require("../../blockchain/build/contracts/AttendanceSystem.json");
 
 //  CONTRACT DETAILS (PUT YOUR VALUES HERE)
-const CONTRACT_ADDRESS = "0x8f8421e683956Ad15b6E7d301182D3D79E2A46C9"; 
+const CONTRACT_ADDRESS = "0xE3281A71ABD8AB9AD275f92a40D0b96B04dfcACb"; 
 const ADMIN_PRIVATE_KEY = "0xa3cb54c2720262b6beae6f8b8ac88e39c3f1b89b64759df085816978deec978c";    
 
 //  INIT CONTRACT

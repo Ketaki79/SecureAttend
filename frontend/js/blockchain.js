@@ -1,34 +1,19 @@
-// ================= BLOCKCHAIN.JS =================
+// ================= BLOCKCHAIN CONNECTION =================
 
-//  UPDATE AFTER REDEPLOYING CONTRACT
+let web3;
+let contract;
+let userAccount;
+
+// DEPLOYED CONTRACT ADDRESS (Ganache)
 const contractAddress = "0x8f8421e683956Ad15b6E7d301182D3D79E2A46C9";
 
+//  ABI 
 const contractABI = [
   {
     "inputs": [
-      {"internalType": "string", "name": "_name", "type": "string"},
-      {"internalType": "uint256", "name": "_sem", "type": "uint256"},
-      {"internalType": "address", "name": "_wallet", "type": "address"}
-    ],
-    "name": "addStudent",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"internalType": "address", "name": "_faculty", "type": "address"}
-    ],
-    "name": "addFaculty",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"internalType": "address", "name": "_student", "type": "address"},
-      {"internalType": "string", "name": "_subject", "type": "string"},
-      {"internalType": "bool", "name": "_present", "type": "bool"}
+      { "internalType": "address", "name": "_student", "type": "address" },
+      { "internalType": "string", "name": "_subject", "type": "string" },
+      { "internalType": "bool", "name": "_present", "type": "bool" }
     ],
     "name": "markAttendance",
     "outputs": [],
@@ -37,33 +22,17 @@ const contractABI = [
   },
   {
     "inputs": [],
-    "name": "getStudentCount",
-    "outputs": [{"type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"internalType": "uint256", "name": "index", "type": "uint256"}],
-    "name": "getStudent",
-    "outputs": [
-      {"type": "string"},
-      {"type": "uint256"},
-      {"type": "address"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "getRecords",
     "outputs": [
       {
         "components": [
-          {"name": "student", "type": "address"},
-          {"name": "subject", "type": "string"},
-          {"name": "timestamp", "type": "uint256"},
-          {"name": "present", "type": "bool"}
+          { "internalType": "address", "name": "student", "type": "address" },
+          { "internalType": "string", "name": "subject", "type": "string" },
+          { "internalType": "uint256", "name": "date", "type": "uint256" },
+          { "internalType": "bool", "name": "present", "type": "bool" }
         ],
+        "internalType": "struct Attendance.Record[]",
+        "name": "",
         "type": "tuple[]"
       }
     ],
@@ -72,87 +41,81 @@ const contractABI = [
   }
 ];
 
-// ---------------- GLOBALS ----------------
-let web3;
-let contract;
-let userAccount;
-
-// ---------------- CONNECT ----------------
-async function connectMetaMask() {
+// ================= AUTO CONNECT =================
+window.addEventListener("load", async () => {
   if (window.ethereum) {
     web3 = new Web3(window.ethereum);
 
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts"
-    });
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts"
+      });
 
-    userAccount = accounts[0]; 
+      if (accounts.length > 0) {
+        userAccount = accounts[0];
+        console.log("Wallet Connected:", userAccount);
 
-    contract = new web3.eth.Contract(contractABI, contractAddress);
+        contract = new web3.eth.Contract(contractABI, contractAddress);
 
-    console.log("Connected:", userAccount);
+        // auto-fill wallet input if exists
+        let walletInput = document.getElementById("walletAddress");
+        if (walletInput) {
+          walletInput.value = userAccount;
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
   } else {
-    alert("Install MetaMask");
+    alert("Install MetaMask first!");
+  }
+});
+
+// ================= MANUAL CONNECT =================
+async function connectWallet() {
+  if (!window.ethereum) {
+    alert("MetaMask not found");
+    return;
+  }
+
+  web3 = new Web3(window.ethereum);
+
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts"
+  });
+
+  userAccount = accounts[0];
+
+  contract = new web3.eth.Contract(contractABI, contractAddress);
+
+  console.log("Connected:", userAccount);
+
+  let walletInput = document.getElementById("walletAddress");
+  if (walletInput) walletInput.value = userAccount;
+}
+
+// ================= MARK ATTENDANCE =================
+async function markAttendance(student, subject, present) {
+  try {
+    await contract.methods.markAttendance(
+    studentWalletAddress,
+    subjectName,
+    present
+    ).send({ from: userAccount });
+
+    alert("Attendance stored on blockchain ✔");
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed");
   }
 }
 
-// ---------------- ADD STUDENT ----------------
-async function addStudentBlockchain(name, sem, wallet) {
-  if (!contract) throw "Contract not loaded";
-
-  return await contract.methods
-    .addStudent(name, sem, wallet)
-    .send({ from: userAccount });
-}
-
-// ---------------- ADD FACULTY ----------------
-async function addFacultyBlockchain(wallet) {
-  return await contract.methods
-    .addFaculty(wallet)
-    .send({ from: userAccount });
-}
-
-// ---------------- MARK ATTENDANCE ----------------
-async function markAttendanceBlockchain(student, subject, present) {
-  return await contract.methods
-    .markAttendance(student, subject, present)
-    .send({ from: userAccount });
-}
-
-// ---------------- GET STUDENTS ----------------
-async function getStudentsBlockchain() {
-  const count = await contract.methods.getStudentCount().call();
-  let list = [];
-
-  for (let i = 0; i < count; i++) {
-    const s = await contract.methods.getStudent(i).call();
-
-    list.push({
-      name: s[0],
-      sem: s[1],
-      wallet: s[2]
-    });
+// ================= GET ALL RECORDS =================
+async function getRecords() {
+  try {
+    const data = await contract.methods.getRecords().call();
+    return data;
+  } catch (err) {
+    console.error(err);
   }
-
-  return list;
 }
-
-// ---------------- GET RECORDS ----------------
-async function getAttendanceRecords() {
-  const records = await contract.methods.getRecords().call();
-
-  return records.map(r => ({
-    student: r.student,
-    subject: r.subject,
-    date: new Date(r.timestamp * 1000).toLocaleString(),
-    present: r.present
-  }));
-}
-
-// ---------------- EXPORT ----------------
-window.connectMetaMask = connectMetaMask;
-window.addStudentBlockchain = addStudentBlockchain;
-window.addFacultyBlockchain = addFacultyBlockchain;
-window.markAttendanceBlockchain = markAttendanceBlockchain;
-window.getStudentsBlockchain = getStudentsBlockchain;
-window.getAttendanceRecords = getAttendanceRecords;

@@ -1,6 +1,6 @@
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const db = require('./db');
 
 dotenv.config();
@@ -9,27 +9,22 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// TEST DB
+// DB check
 db.query("SELECT 1")
-  .then(() => console.log("MySQL Connected Successfully"))
-  .catch(err => console.log("DB Error", err));
+  .then(() => console.log("MySQL Connected"))
+  .catch(err => console.log(err));
 
 // ROUTES
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
-const facultyRoutes = require('./routes/faculty');
-const studentRoutes = require('./routes/student');
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/faculty', require('./routes/faculty'));
+app.use('/api/student', require('./routes/student'));
+app.use('/api/attendance', require('./routes/attendance'));
 
-app.use('/api', authRoutes);
-app.use('/api', adminRoutes);
-app.use('/api', facultyRoutes);
-app.use('/api', studentRoutes);
+app.get('/', (req, res) => res.send("Backend Running"));
 
-// TEST
-app.get('/', (req, res) => {
-  res.send('Backend running');
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
 });
-
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

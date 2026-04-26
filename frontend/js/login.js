@@ -18,48 +18,49 @@ window.addEventListener("DOMContentLoaded", () => {
     togglePassword.classList.toggle("fa-eye-slash");
   });
 
-  // ---------------- AUTO WALLET ----------------
-  async function connectWalletAuto() {
-  if (!window.ethereum) {
-    walletAddressInput.value = "MetaMask Not Installed";
-    return;
-  }
+  // // ---------------- AUTO WALLET ----------------
+  // async function connectWalletAuto() {
+  // if (!window.ethereum) {
+  //   walletAddressInput.value = "MetaMask Not Installed";
+  //   return;
+  // }
 
-  try {
-    const accounts = await ethereum.request({ method: 'eth_accounts' });
-    walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
-  } catch {
-    walletAddressInput.value = "Error";
-  }
-  }
+  // try {
+  //   const accounts = await ethereum.request({ method: 'eth_accounts' });
+  //   walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
+  // } catch {
+  //   walletAddressInput.value = "Error";
+  // }
+  // }
 
-  window.addEventListener("load", connectWalletAuto);
-  email.addEventListener("blur", connectWalletAuto);
+  // window.addEventListener("load", connectWalletAuto);
+  // email.addEventListener("blur", connectWalletAuto);
 
-  // ---------------- LOGIN ----------------
+    // ---------------- LOGIN ----------------
   form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    walletError.textContent = "";
 
-  walletError.textContent = "";
+    if (!window.ethereum) {
+      walletError.textContent = "Install MetaMask!";
+      return;
+    }
 
-  if (!window.ethereum) {
-    walletError.textContent = "Install MetaMask!";
-    return;
-  }
+    let accounts;
 
-  let accounts;
+    try {
+      // 🔥 POPUP TRIGGER
+      accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    } catch {
+      walletError.textContent = "Wallet connection rejected!";
+      return;
+    }
 
-  try {
-    accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-  } catch {
-    walletError.textContent = "Wallet connection rejected!";
-    return;
-  }
+    const walletAddress = accounts[0];
+    walletAddressInput.value = walletAddress;
 
-  const walletAddress = accounts[0];
-
-  try {
-    const res = await fetch('http://localhost:5000/api/login', {
+    try {
+    const res = await fetch('http://localhost:5000/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

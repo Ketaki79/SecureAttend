@@ -1,5 +1,4 @@
-// register.js
-// ---------------- ELEMENTS ----------------
+// ================= ELEMENTS =================
 const firstName = document.getElementById('firstName');
 const lastName = document.getElementById('lastName');
 const email = document.getElementById('email');
@@ -14,18 +13,21 @@ const successPopup = document.getElementById('successPopup');
 const togglePassword = document.getElementById('togglePassword');
 const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
 
-// ---------------- EYE TOGGLE ----------------
-function toggleEye(input, icon){
+
+// ================= PASSWORD TOGGLE =================
+function toggleEye(input, icon) {
   input.type = input.type === 'password' ? 'text' : 'password';
   icon.classList.toggle('fa-eye-slash');
 }
 
-togglePassword.addEventListener('click', ()=>toggleEye(password, togglePassword));
-toggleConfirmPassword.addEventListener('click', ()=>toggleEye(confirmPassword, toggleConfirmPassword));
+togglePassword.addEventListener('click', () => toggleEye(password, togglePassword));
+toggleConfirmPassword.addEventListener('click', () => toggleEye(confirmPassword, toggleConfirmPassword));
 
-// ---------------- DYNAMIC VALIDATION ----------------
+
+// ================= VALIDATION =================
 function validateField(input, errorId, validator) {
   const errorEl = document.getElementById(errorId);
+
   input.addEventListener('input', () => {
     if (validator(input.value)) {
       errorEl.classList.remove('show');
@@ -38,61 +40,57 @@ function validateField(input, errorId, validator) {
 // Validators
 const minLength3 = val => val.length >= 3;
 const emailValidator = val => val.endsWith('@gmail.com');
-const passwordValidator = val => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(val);
+const passwordValidator = val =>
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(val);
 const confirmPasswordValidator = val => val === password.value;
 
-// Attach dynamic validation
+// Attach validation
 validateField(firstName, 'firstNameError', minLength3);
 validateField(lastName, 'lastNameError', minLength3);
 validateField(email, 'emailError', emailValidator);
 validateField(password, 'passwordError', passwordValidator);
 validateField(confirmPassword, 'confirmPasswordError', confirmPasswordValidator);
 
-// ---------------- AUTO WALLET ----------------
-async function connectWalletAuto() {
-  if (!window.ethereum) {
-    walletAddressInput.value = "MetaMask Not Installed";
-    return;
-  }
-  try {
-    const accounts = await ethereum.request({ method: 'eth_accounts' });
-    walletAddressInput.value = accounts.length ? accounts[0] : "Not Connected";
-  } catch {
-    walletAddressInput.value = "Error";
-  }
-}
-window.addEventListener("load", connectWalletAuto);
 
-// ---------------- FORM SUBMIT ----------------
+// ================= REGISTER =================
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  walletError.textContent = "";
   walletError.classList.remove('show');
 
-  // Basic validation
+  // -------- BASIC VALIDATION --------
   if (!firstName.value || !lastName.value || !email.value || !password.value || !confirmPassword.value) {
     alert("Please fill all fields!");
     return;
   }
+
   if (password.value !== confirmPassword.value) {
     alert("Passwords do not match!");
     return;
   }
+
   if (!role.value) {
     alert("Select a role!");
     return;
   }
 
-  // MetaMask connect (popup)
+  // -------- METAMASK --------
   if (!window.ethereum) {
     walletError.textContent = "Install MetaMask!";
     walletError.classList.add('show');
     return;
   }
+
   let accounts;
+
   try {
-    accounts = await ethereum.request({ method: 'eth_requestAccounts' }); // popup
-  } catch {
-    walletError.textContent = "MetaMask connection rejected!";
+    //  THIS TRIGGERS POPUP
+    accounts = await window.ethereum.request({
+      method: 'eth_requestAccounts'
+    });
+  } catch (err) {
+    walletError.textContent = "Wallet connection rejected!";
     walletError.classList.add('show');
     return;
   }
@@ -100,29 +98,10 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const walletAddress = accounts[0];
   walletAddressInput.value = walletAddress;
 
-  // Check wallet for new users
-  try {
-    const resCheck = await fetch('http://localhost:5000/api/check-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ walletAddress })
-    });
-    const checkResult = await resCheck.json();
 
-    if (checkResult.exists) {
-      walletError.textContent = "This wallet is already registered! Use a new wallet.";
-      walletError.classList.add('show');
-      return;
-    }
-  } catch {
-    walletError.textContent = "Server error while checking wallet!";
-    walletError.classList.add('show');
-    return;
-  }
-
-  // Submit registration
+  // -------- SEND TO BACKEND --------
   try {
-    const res = await fetch('http://localhost:5000/api/register', {
+    const res = await fetch('http://localhost:5000/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -136,15 +115,40 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     });
 
     const result = await res.json();
+
+    // -------- HANDLE BACKEND ERRORS --------
+    if (!res.ok) {
+      if (result.error === "WalletAlreadyUsed") {
+        walletError.textContent = "This wallet is already registered!";
+      } 
+      else if (result.error === "NotCreatedByAdmin") {
+        walletError.textContent = "Contact admin to create your account first!";
+      } 
+      else {
+        walletError.textContent = result.error || "Registration failed!";
+      }
+
+      walletError.classList.add('show');
+      return;
+    }
+
+    // -------- SUCCESS --------
     if (result.success) {
       successPopup.classList.add('show');
-      // Optional: play popup sound
-      new Audio('success.mp3').play();
-      setTimeout(() => window.location.href = 'login.html', 2000);
-    } else {
-      alert(result.message);
+
+      // optional sound
+      try {
+        new Audio('success.mp3').play();
+      } catch {}
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 2000);
     }
-  } catch {
-    alert("Server error. Try again later.");
+
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    walletError.textContent = "Server error. Try again later.";
+    walletError.classList.add('show');
   }
 });

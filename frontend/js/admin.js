@@ -3,11 +3,6 @@
 // ---------------- DATA ----------------
 let students = [];
 let faculty = [];
-let subjects = [];
-
-// ---------------- DOM ----------------
-const sName = document.getElementById("sName");
-const sSem = document.getElementById("sSem");
 
 const studentTable = document.getElementById("studentTable");
 const facultyTable = document.getElementById("facultyTable");
@@ -15,63 +10,62 @@ const facultyTable = document.getElementById("facultyTable");
 const studentCount = document.getElementById("studentCount");
 const facultyCount = document.getElementById("facultyCount");
 
-// ---------------- INIT ----------------
-window.addEventListener("load", async () => {
-  await connectMetaMask();
-  await loadStudentsFromBlockchain();
+// ================= LOAD =================
+window.addEventListener("load", () => {
+  loadStudents();
+  loadFaculty();
 });
 
-// ---------------- LOAD STUDENTS ----------------
-async function loadStudentsFromBlockchain() {
-  students = await getStudentsBlockchain();
+// ================= STUDENTS =================
+async function loadStudents() {
+  const res = await fetch("http://localhost:5000/api/students");
+  students = await res.json();
   renderStudents();
-  updateCounts();
+  studentCount.innerText = students.length;
 }
 
-// ---------------- ADD STUDENT ----------------
 async function addStudent() {
-  const name = document.getElementById("sName").value;
+  const firstName = document.getElementById("sName").value;
   const email = document.getElementById("sEmail").value;
   const branch = document.getElementById("sBranch").value;
   const sem = document.getElementById("sSem").value;
 
-  const wallet = prompt("Enter student wallet address");
+  const walletAddress = prompt("Enter student wallet");
 
-  if (!wallet) return alert("Wallet required");
-
-  await fetch("http://localhost:3000/add-student", {
+  await fetch("http://localhost:5000/api/students", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, email, branch, sem, wallet })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ firstName, lastName: "", email, walletAddress })
   });
 
-  await addStudentBlockchain(name, sem, wallet);
-
-  alert("Student added successfully");
-
-  loadStudentsFromBlockchain();
+  alert("Student added");
+  loadStudents();
 }
 
-// ---------------- ADD FACULTY ----------------
+// ================= FACULTY =================
+async function loadFaculty() {
+  const res = await fetch("http://localhost:5000/api/faculty");
+  faculty = await res.json();
+  renderFaculty();
+  facultyCount.innerText = faculty.length;
+}
+
 async function addFaculty() {
-  const name = document.getElementById("fName").value;
+  const firstName = document.getElementById("fName").value;
   const email = document.getElementById("fEmail").value;
   const branch = document.getElementById("fBranch").value;
   const subject = document.getElementById("fSubject").value;
 
-  const wallet = prompt("Enter faculty wallet");
+  const walletAddress = prompt("Enter faculty wallet");
 
-  if (!wallet) return;
-
-  await fetch("http://localhost:3000/add-faculty", {
+  await fetch("http://localhost:5000/api/faculty", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, email, branch, subject, wallet })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ firstName, lastName: "", email, walletAddress, subject })
   });
 
-  await addFacultyBlockchain(wallet);
-
   alert("Faculty added");
+  loadFaculty();
 }
 
 // ---------------- DELETE STUDENT ----------------
@@ -88,21 +82,16 @@ function deleteFaculty(i) {
   updateCounts();
 }
 
-// ---------------- RENDER ----------------
+// ================= RENDER =================
 function renderStudents() {
   studentTable.innerHTML = "";
 
-  students.forEach((s, i) => {
+  students.forEach(s => {
     studentTable.innerHTML += `
       <tr>
-        <td>${s.name}</td>
-        <td>${s.sem}</td>
-        <td>${s.wallet}</td>
-        <td>
-          <button onclick="deleteStudent(${i})" class="text-red-400">
-            Delete
-          </button>
-        </td>
+        <td>${s.first_name} ${s.last_name}</td>
+        <td>${s.email}</td>
+        <td>${s.wallet_address}</td>
       </tr>
     `;
   });
@@ -111,15 +100,12 @@ function renderStudents() {
 function renderFaculty() {
   facultyTable.innerHTML = "";
 
-  faculty.forEach((f, i) => {
+  faculty.forEach(f => {
     facultyTable.innerHTML += `
       <tr>
-        <td>${f.wallet}</td>
-        <td>
-          <button onclick="deleteFaculty(${i})" class="text-red-400">
-            Delete
-          </button>
-        </td>
+        <td>${f.first_name} ${f.last_name}</td>
+        <td>${f.email}</td>
+        <td>${f.wallet_address}</td>
       </tr>
     `;
   });
